@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+Future<void> main() async {
+  final env = const String.fromEnvironment('ENV', defaultValue: 'dev');
+  print(' ENV loaded: $env');
+  await dotenv.load(fileName: '.env.$env');
 
-void main() {
   runApp(const MyApp());
 }
 
