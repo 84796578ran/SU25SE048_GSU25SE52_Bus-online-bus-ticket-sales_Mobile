@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/pages/customer_pages/home_page.dart';
-
+import 'package:mobile/models/customer.dart';
+import 'package:mobile/pages/customer_pages/provider_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class LoginPage extends StatefulWidget {
   static const path = '/login';
   const LoginPage({super.key});
@@ -21,6 +23,37 @@ class _LoginPage extends State<LoginPage> {
     super.dispose();
   }
 
+
+
+  void fetchData() async {
+    final uri = Uri.parse('http://10.0.2.2:7197/api/Customer/LoginWithPhone');
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': _usernameController.text,
+        'password': _passwordController.text,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final customer = Customer.fromJson(data);
+
+      print('Đăng nhập thành công: $customer');
+      // if (mounted) {
+      //   context.go('/provider/home');
+      // }
+    } else {
+      print('Đăng nhập thất bại với mã ${response.statusCode}');
+      // Có thể hiển thị thông báo lỗi bằng SnackBar hoặc AlertDialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sai tên đăng nhập hoặc mật khẩu. Vui kiểm tra lại.'))
+      );
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,20 +65,15 @@ class _LoginPage extends State<LoginPage> {
             children: [
               Image.asset(
                 'assets/Logo.png',
-                width: 150,
-                height: 150,
+                width: 200,
+                height: 200,
               ),
-              const SizedBox(height: 48),
-              const Text(
-                'Welcome!',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 30),
               TextField(
                 controller: _usernameController,
                 decoration: InputDecoration(
-                  labelText: 'Username',
-                  hintText: 'Enter your username',
+                  labelText: 'Số điện thoại',
+                  hintText: 'Số điện thoại',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -57,22 +85,22 @@ class _LoginPage extends State<LoginPage> {
                 controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Enter your password',
+                  labelText: 'Mật khẩu',
+                  hintText: 'Mật khẩu',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                   prefixIcon: const Icon(Icons.lock), // Icon khóa
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 35),
               ElevatedButton(
                 onPressed: () {
                   final String username = _usernameController.text;
                   final String password = _passwordController.text;
                   print('Username: $username');
                   print('Password: $password');
-                  context.go(HomePage.path);
+                  context.go('/provider/home');
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
@@ -81,7 +109,7 @@ class _LoginPage extends State<LoginPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text('Login'),
+                child: const Text('Đăng nhập'),
               ),
             ],
           ),

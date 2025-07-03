@@ -1,7 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/pages/commmon_pages/login_page.dart';
-import 'package:mobile/pages/customer_pages/home_page.dart';
+import 'package:mobile/pages/commmon_pages/profile_page.dart';
+import 'package:mobile/pages/customer_pages/provider_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -13,12 +14,15 @@ class AppRouter {
           return const LoginPage();
         },
       ),
-      GoRoute(
-        path: HomePage.path,
-        builder: (BuildContext context, GoRouterState state) {
-          return const HomePage();
-        },
-      ),
+      ShellRoute(
+        builder: (context, state, child) => ProviderHomePage(child: child),
+          routes: [
+            GoRoute(
+              path: '/provider/home',
+              builder: (context, state) => const ProfilePage(),
+            ),
+          ]
+      )
     ],
     errorBuilder: (BuildContext context, GoRouterState state) {
       return Scaffold(

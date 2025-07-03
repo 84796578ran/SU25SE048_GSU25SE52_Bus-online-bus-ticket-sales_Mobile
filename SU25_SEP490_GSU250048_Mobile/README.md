@@ -25,3 +25,10 @@ flutter build apk --dart-define=ENV=prod
 LOCALHOST
 flutter run --dart-define=ENV=dev
 
+r Hot reload.
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
