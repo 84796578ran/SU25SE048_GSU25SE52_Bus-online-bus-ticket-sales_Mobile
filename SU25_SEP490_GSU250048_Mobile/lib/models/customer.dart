@@ -4,27 +4,21 @@ class Customer {
     required this.fullName,
     required this.email,
     required this.phone,
-    required this.password,
-    this.userName,
-
+    this.token,
   });
   final String id;
   final String? fullName;
   final String? email;
   final String? phone;
-  final String? password;
-  final String? userName;
-
+  final String? token;
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
-      id: json['id'] as String, // Assuming 'id' is always present and non-null
+      id: json['id'] as String,
       fullName: json['fullName'] as String?,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
-      password: json['password'] as String?, // Again, handle this securely in a real app
-      userName: json['userName'] as String?,
-
+      token: json['token'] as String?,
     );
   }
 
@@ -34,8 +28,7 @@ class Customer {
       'fullName': fullName,
       'email': email,
       'phone': phone,
-      'password': password,
-      'userName': userName,
+      'token': token,
     };
   }
 
@@ -46,7 +39,6 @@ class Customer {
         '  fullName: $fullName,\n'
         '  email: $email,\n'
         '  phone: $phone,\n'
-        '  userName: $userName,\n'
         '  password: [HIDDEN]\n'
         ')';
   }

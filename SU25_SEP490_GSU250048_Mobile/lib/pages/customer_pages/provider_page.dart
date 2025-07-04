@@ -1,5 +1,9 @@
 import  'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile/pages/customer_pages/screens/history_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/home_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/search_screen.dart';
+import '../commmon_pages/profile_page.dart';
 
 
 final selectedGlobalIndex = ValueNotifier(0);
@@ -20,13 +24,11 @@ class ProviderHomePage extends StatefulWidget {
 class _HomePageState extends State<ProviderHomePage> {
    var _currentScreenIndex = 0;
 
-  static const List<Destination> allDestinations = <Destination>[
-    // Destination('Trang chủ', Icons.history, Icons.home, Colors.blue, Colors.white, ),
-    // Destination('Dich vu cua toi', Icons.search_outlined, Icons.search, Colors.blue, Colors.white, ),
-    // Destination('Quan ly vi', Icons.calendar_month_outlined, Icons.calendar_month, Colors.blue, Colors.white, ),
-    // Destination('Tao dich vu moi', Icons.message_outlined, Icons.message, Colors.blue, Colors.white, ),
-    // // Destination('Tin nhắn', Icons.message_outlined, Icons.message, Colors.blue, Colors.white, ),
-    // Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.blue, Colors.white, ProviderProfileScreen.path),
+  static final List<Destination> allDestinations = <Destination>[
+     Destination('Trang chủ', Icons.home_filled, Icons.home, Colors.blue, Colors.white, HomeScreen.path),
+     Destination('Tìm kiếm chuyến đi', Icons.search_outlined, Icons.search, Colors.blue, Colors.white, SearchScreen.path),
+     Destination('Lịch sử đặt vé', Icons.calendar_month_outlined, Icons.calendar_month, Colors.blue, Colors.white, HistoryScreen.path),
+     Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.blue, Colors.white, ProfilePage.path),
   ];
 
   @override
