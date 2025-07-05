@@ -3,14 +3,25 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mobile/pages/app_route.dart';
 import 'dart:io';
 
+import 'package:mobile/provider/author_provider.dart';
+import 'package:provider/provider.dart';
+
 
 Future<void> main() async {
-  // final env = const String.fromEnvironment('ENV', defaultValue: 'dev');
-  // print(' ENV loaded: $env');
-  // await dotenv.load(fileName: '.env.$env');
+  WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = MyHttpOverride();
   await dotenv.load(fileName: ".env");
-  runApp(const MyApp());
+
+  runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthProvider()..loadToken()),
+          //ChangeNotifierProvider(create: (_) => BookingProvider()),
+          //ChangeNotifierProvider(create: (_) => UserProvider()),
+        ],
+        child: const MyApp(),
+      )
+  );
 }
 
 class MyApp extends StatelessWidget {

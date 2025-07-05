@@ -3,8 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:mobile/author/author_service.dart';
+import 'package:provider/provider.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../provider/author_provider.dart';
+import '../../services/author_service.dart';
 
 class LoginPage extends StatefulWidget {
   static const path = '/login';
@@ -58,13 +62,21 @@ class _LoginPage extends State<LoginPage> {
           'password': _passwordController.text.trim(),
         }),
       );
-
-
       if (response.statusCode == 200) {
         final token = response.body;
-       await AuthService.saveToken(token);
+        await AuthService.saveToken(token);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.login(token);
+        final payload = JwtDecoder.decode(token);
+        final actor = payload['actor'];
+        final role = payload['role'];
 
-        if (mounted) context.go('/customer/home');
+        print('Actor: $actor, Role: $role');
+        if (actor == 'system' && role == 'driver') {
+          context.go('/driver/home');
+        } else {
+          context.go('/customer/home');
+        }
       } else if (response.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sai số điện thoại hoặc mật khẩu.')),
@@ -79,9 +91,9 @@ class _LoginPage extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Không thể kết nối đến máy chủ.')),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
-
-    setState(() => _isLoading = false);
   }
 
   @override

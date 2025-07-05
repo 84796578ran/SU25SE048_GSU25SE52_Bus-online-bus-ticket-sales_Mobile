@@ -26,7 +26,7 @@ class _HomePageState extends State<ProviderHomePage> {
 
   static final List<Destination> allDestinations = <Destination>[
      Destination('Trang chủ', Icons.home_filled, Icons.home, Colors.blue, Colors.white, HomeScreen.path),
-     Destination('Tìm kiếm chuyến đi', Icons.search_outlined, Icons.search, Colors.blue, Colors.white, SearchScreen.path),
+     Destination('Tìm kiếm', Icons.search_outlined, Icons.search, Colors.blue, Colors.white, SearchScreen.path),
      Destination('Lịch sử đặt vé', Icons.calendar_month_outlined, Icons.calendar_month, Colors.blue, Colors.white, HistoryScreen.path),
      Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.blue, Colors.white, ProfilePage.path),
   ];
