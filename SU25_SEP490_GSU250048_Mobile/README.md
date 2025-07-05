@@ -25,6 +25,13 @@ flutter build apk --dart-define=ENV=prod
 LOCALHOST
 flutter run --dart-define=ENV=dev
 
+run debug
+flutter run --debug
+
+flutter clean
+flutter pub get
+flutter run
+
 r Hot reload.
 R Hot restart.
 h List all available interactive commands.

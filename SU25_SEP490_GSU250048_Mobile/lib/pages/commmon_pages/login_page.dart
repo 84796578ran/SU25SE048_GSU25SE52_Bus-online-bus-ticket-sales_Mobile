@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile/models/customer.dart';
-import 'package:mobile/pages/customer_pages/provider_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../provider/author_provider.dart';
+import '../../services/author_service.dart';
+
 class LoginPage extends StatefulWidget {
   static const path = '/login';
   const LoginPage({super.key});
@@ -13,106 +19,164 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPage extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
-  void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _checkIfLoggedIn();
   }
 
+  Future<void> _checkIfLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
 
-
-  void fetchData() async {
-    final uri = Uri.parse('http://10.0.2.2:7197/api/Customer/LoginWithPhone');
-    final response = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': _usernameController.text,
-        'password': _passwordController.text,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final customer = Customer.fromJson(data);
-
-      print('Đăng nhập thành công: $customer');
-      // if (mounted) {
-      //   context.go('/provider/home');
-      // }
-    } else {
-      print('Đăng nhập thất bại với mã ${response.statusCode}');
-      // Có thể hiển thị thông báo lỗi bằng SnackBar hoặc AlertDialog
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sai tên đăng nhập hoặc mật khẩu. Vui kiểm tra lại.'))
-      );
+    if (token != null && mounted) {
+      context.go('/customer/home');
     }
   }
 
 
   @override
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login(BuildContext context) async {
+    setState(() => _isLoading = true);
+    final uri = Uri.parse('${dotenv.env['API_URL']}/Customer/LoginWithPhone');
+
+    try {
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'phone': _phoneController.text.trim(),
+          'password': _passwordController.text.trim(),
+        }),
+      );
+      if (response.statusCode == 200) {
+        final token = response.body;
+        await AuthService.saveToken(token);
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.login(token);
+        final payload = JwtDecoder.decode(token);
+        final actor = payload['actor'];
+        final role = payload['role'];
+
+        print('Actor: $actor, Role: $role');
+        if (actor == 'system' && role == 'driver') {
+          context.go('/driver/home');
+        } else {
+          context.go('/customer/home');
+        }
+      } else if (response.statusCode == 401) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sai số điện thoại hoặc mật khẩu.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Lỗi khi gọi API: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể kết nối đến máy chủ.')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/Logo.png',
-                width: 200,
-                height: 200,
-              ),
-              const SizedBox(height: 30),
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Số điện thoại',
-                  hintText: 'Số điện thoại',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 80, 24, 30),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Image.asset('assets/Logo.png', width: 170, height: 170),
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Chào mừng bạn đến với', style: TextStyle(fontSize: 28)),
+                Text(
+                  'XE TIỆN ÍCH',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
                   ),
-                  prefixIcon: const Icon(Icons.person),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Mật khẩu',
-                  hintText: 'Mật khẩu',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+              ],
+            ),
+            Column(
+              children: [
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: 'Số điện thoại',
+                    prefixIcon: const Icon(Icons.person),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  prefixIcon: const Icon(Icons.lock), // Icon khóa
                 ),
-              ),
-              const SizedBox(height: 35),
-              ElevatedButton(
-                onPressed: () {
-                  final String username = _usernameController.text;
-                  final String password = _passwordController.text;
-                  print('Username: $username');
-                  print('Password: $password');
-                  context.go('/provider/home');
-                },
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 40),
+                const Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Quên mật khẩu?',
+                    style: TextStyle(color: Colors.blue, fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : () => _login(context),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                  textStyle: const TextStyle(fontSize: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  backgroundColor: const Color(0xff447def),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Đăng nhập'),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                  'Đăng nhập',
+                  style: TextStyle(fontSize: 22, color: Colors.white),
+                ),
               ),
-            ],
-          ),
+            ),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Chưa có tài khoản?', style: TextStyle(fontSize: 18)),
+                SizedBox(width: 6),
+                Text('Đăng ký ngay', style: TextStyle(fontSize: 18, color: Colors.blue)),
+              ],
+            ),
+          ],
         ),
       ),
     );
