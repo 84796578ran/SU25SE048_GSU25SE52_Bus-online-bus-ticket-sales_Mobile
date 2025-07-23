@@ -6,7 +6,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../provider/author_provider.dart';
 import '../../services/author_service.dart';
 
@@ -49,7 +48,7 @@ class _LoginPage extends State<LoginPage> {
 
   Future<void> _login(BuildContext context) async {
     setState(() => _isLoading = true);
-    final uri = Uri.parse('${dotenv.env['API_URL']}/Customer/LoginWithPhone');
+    final uri = Uri.parse('${dotenv.env['API_URL']}/Customers/LoginWithPhone');
 
     try {
       final response = await http.post(

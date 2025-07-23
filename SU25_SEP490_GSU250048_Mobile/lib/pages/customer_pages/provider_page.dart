@@ -2,7 +2,8 @@ import  'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/pages/customer_pages/screens/history_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/home_screen.dart';
-import 'package:mobile/pages/customer_pages/screens/search_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/notification/notification_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/search/search_screen.dart';
 import '../commmon_pages/profile_page.dart';
 
 
@@ -28,7 +29,8 @@ class _HomePageState extends State<ProviderHomePage> {
      Destination('Trang chủ', Icons.home_filled, Icons.home, Colors.blue, Colors.white, HomeScreen.path),
      Destination('Tìm kiếm', Icons.search_outlined, Icons.search, Colors.blue, Colors.white, SearchScreen.path),
      Destination('Lịch sử đặt vé', Icons.calendar_month_outlined, Icons.calendar_month, Colors.blue, Colors.white, HistoryScreen.path),
-     Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.blue, Colors.white, ProfilePage.path),
+    Destination('Thông báo', Icons.notifications_active, Icons.calendar_month, Colors.blue, Colors.white, NotificationScreen.path),
+    Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.blue, Colors.white, ProfilePage.path),
   ];
 
   @override
