@@ -4,6 +4,9 @@ import 'package:mobile/pages/commmon_pages/login_page.dart';
 import 'package:mobile/pages/commmon_pages/profile_page.dart';
 import 'package:mobile/pages/customer_pages/provider_page.dart';
 import 'package:mobile/pages/customer_pages/screens/home_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/notification/notification_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/search/search_result_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/search/search_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -32,6 +35,15 @@ class AppRouter {
             GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfilePage(),
+            ),
+            GoRoute(path: '/customer/search-trip',
+            builder:   (context, state) => const SearchScreen(),
+            ),
+            GoRoute(path: '/customer/search-result',
+              builder:   (context, state) => const SearchResultScreen(),
+            ),
+            GoRoute(path: '/customer/notification',
+              builder:   (context, state) => const NotificationScreen(),
             ),
           ]
       ),

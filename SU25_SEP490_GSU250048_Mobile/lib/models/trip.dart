@@ -11,7 +11,7 @@ class Trip {
   final String typeBusId;
   final String fromLocation;
   final String endLocation;
-
+  final DateTime returnDate;
   Trip({
     required this.id,
     required this.price,
@@ -22,6 +22,7 @@ class Trip {
     required this.typeBusId,
     required this.fromLocation,
     required this.endLocation,
+    required this.returnDate,
   });
 
   factory Trip.fromJson(Map<String, dynamic> json) {
@@ -35,6 +36,7 @@ class Trip {
       typeBusId: json['typeBusId'] as String,
       fromLocation: json['fromLocation'] as String,
       endLocation: json['endLocation'] as String,
+      returnDate: DateTime.parse(json['returnDate'] as String),
     );
   }
 
@@ -49,6 +51,7 @@ class Trip {
       'typeBusId': typeBusId,
       'fromLocation': fromLocation,
       'endLocation': endLocation,
+      'returnDate' : returnDate,
     };
   }
 }
