@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DatePickerRow extends StatelessWidget {
-  final DateTime date;
+  final DateTime? date; // THAY ĐỔI TỪ DateTime SANG DateTime?
   final String label;
   final VoidCallback onSelect;
 
   const DatePickerRow({
-    required this.date,
+    required this.date, // Vẫn required, nhưng chấp nhận null
     required this.label,
     required this.onSelect,
     super.key,
@@ -15,6 +15,9 @@ class DatePickerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Xử lý trường hợp date là null
+    final displayDate = date ?? DateTime.now(); // Hiển thị ngày hiện tại nếu date là null
+
     return InkWell(
       onTap: onSelect,
       borderRadius: BorderRadius.circular(12),
@@ -28,7 +31,7 @@ class DatePickerRow extends StatelessWidget {
         child: Row(
           children: [
             Text(
-              'Ngày: ${DateFormat('dd/MM/yyyy').format(date)}',
+              'Ngày: ${DateFormat('dd/MM/yyyy').format(displayDate)}', // Sử dụng displayDate
               style: const TextStyle(fontSize: 16),
             ),
             const Spacer(),
@@ -39,5 +42,3 @@ class DatePickerRow extends StatelessWidget {
     );
   }
 }
-
-

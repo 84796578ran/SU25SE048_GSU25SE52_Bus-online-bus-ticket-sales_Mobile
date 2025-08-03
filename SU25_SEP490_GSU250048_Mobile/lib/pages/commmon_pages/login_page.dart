@@ -34,7 +34,20 @@ class _LoginPage extends State<LoginPage> {
     final token = prefs.getString('auth_token');
 
     if (token != null && mounted) {
-      context.go('/customer/home');
+      try {
+        final payload = JwtDecoder.decode(token);
+        final actor = payload['actor'];
+        final role = payload['role'];
+
+        if (actor == 'system' && role == 'driver') {
+          context.go('/driver/home');
+        } else {
+          context.go('/customer/home');
+        }
+      } catch (e) {
+        print('Lỗi token: $e');
+        await AuthService.clearToken();
+      }
     }
   }
 
@@ -62,9 +75,16 @@ class _LoginPage extends State<LoginPage> {
         }),
       );
       if (response.statusCode == 200) {
-        final token = response.body;
+        final responseData = jsonDecode(response.body);
+        final token = responseData['token'];
+        if (token == null || token is! String || token.isEmpty) {
+          throw Exception('Token không hợp lệ');
+        }
+        print('Toàn bộ body: ${response.body}');
+
         await AuthService.saveToken(token);
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
         await authProvider.login(token);
         final payload = JwtDecoder.decode(token);
         final actor = payload['actor'];
@@ -76,13 +96,23 @@ class _LoginPage extends State<LoginPage> {
         } else {
           context.go('/customer/home');
         }
-      } else if (response.statusCode == 401) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sai số điện thoại hoặc mật khẩu.')),
-        );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: ${response.statusCode}')),
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Đăng nhập thất bại'),
+              content: const Text('Sai số điện thoại hoặc mật khẩu. Vui lòng thử lại.'),
+              actions: [
+                TextButton(
+                  child: const Text('Đóng'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // đóng dialog
+                  },
+                ),
+              ],
+            );
+          },
         );
       }
     } catch (e) {
@@ -108,12 +138,23 @@ class _LoginPage extends State<LoginPage> {
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Chào mừng bạn đến với', style: TextStyle(fontSize: 28)),
-                Text(
-                  'XE TIỆN ÍCH',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+               // Text('Chào mừng bạn đến với', style: TextStyle(fontSize: 28)),
+                Center( // Bọc Text widget bằng Center
+                  child: Text(
+                    'Chào mừng bạn đến với',
+                    style: TextStyle(
+                      fontSize: 28,
+                     // fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Center( // Bọc Text widget bằng Center
+                  child: Text(
+                    'XE TIỆN ÍCH',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -127,7 +168,7 @@ class _LoginPage extends State<LoginPage> {
                   decoration: InputDecoration(
                     labelText: 'Số điện thoại',
                     prefixIcon: const Icon(Icons.person),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -137,7 +178,7 @@ class _LoginPage extends State<LoginPage> {
                   decoration: InputDecoration(
                     labelText: 'Mật khẩu',
                     prefixIcon: const Icon(Icons.lock),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                 ),
                 const SizedBox(height: 40),
