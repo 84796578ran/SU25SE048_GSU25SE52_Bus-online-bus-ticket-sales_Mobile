@@ -1,79 +1,39 @@
+// lib/services/booking_service.dart
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:mobile/models/trip.dart';
-import 'package:mobile/services/author_service.dart';
+import 'package:http/http.dart' as http;
 
 class BookingService {
-  static final String _baseUrl = dotenv.env['API_URL'] ?? '';
-  static Future<List<Trip>> searchOneWayTrip({
-      required String fromLocation,
-      required String endLocation,
-      required  DateTime timeStart,
-      //required int totalNumber
-  }) async {
-    final token = await AuthService.getToken();
-    final uri = Uri.parse('$_baseUrl/Trip/search');
-    final response = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'fromLocation': fromLocation,
-        'endLocation': endLocation,
-        'timeStart': timeStart.toIso8601String(),
-      }),
-    );
+  final String _baseUrl = dotenv.env['API_URL'] ?? '';
+  final String _endpoint = '/Reservations';
 
-    if (response.statusCode == 200) {
-      final List<dynamic> rawList = jsonDecode(response.body);
-      return rawList.map((e) => Trip.fromJson(e)).toList();
-    } else {
-      throw Exception(
-          'Không tìm được chuyến xe. ${response.statusCode}');
-    }
-  }
+  Future<Map<String, dynamic>> createReservation(Map<String, dynamic> payload, {Map<String, dynamic>? queryParams}) async {
+    // Tạo URI ban đầu
+    Uri uri = Uri.parse('$_baseUrl$_endpoint');
 
-  static Future<List<Trip>> searchRoundTrip({
-    required String fromLocation,
-    required String endLocation,
-    required DateTime timeStart,
-    //required int totalNumber,
-    bool isRoundTrip = false,
-    DateTime? returnDate,
-  }) async {
-    final token = await AuthService.getToken();
-    final uri = Uri.parse('$_baseUrl/Trip/search');
-
-    final Map<String, dynamic> payload = {
-      'fromLocation': fromLocation,
-      'endLocation': endLocation,
-      'timeStart': timeStart.toIso8601String(),
-    //  'totalNumber': totalNumber,
-      'isRoundTrip': isRoundTrip,
-    };
-
-    // 👇 Chỉ thêm returnDate nếu chọn khứ hồi
-    if (isRoundTrip && returnDate != null) {
-      payload['returnDate'] = returnDate.toIso8601String();
+    if (queryParams != null) {
+      uri = uri.replace(queryParameters: queryParams.map((key, value) => MapEntry(key, value.toString())));
     }
 
-    final response = await http.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(payload),
-    );
+    print('Sending payment request to: $uri');
+    print('Request body: ${json.encode(payload)}');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> rawList = jsonDecode(response.body);
-      return rawList.map((e) => Trip.fromJson(e)).toList();
-    } else {
-      throw Exception('Không tìm được chuyến xe. ${response.statusCode}');
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(payload),
+      );
+      return {
+        'statusCode': response.statusCode,
+        'body': json.decode(response.body),
+      };
+    } catch (e) {
+      // Xử lý lỗi kết nối
+      return {
+        'statusCode': 500,
+        'body': {'error': 'Lỗi kết nối: $e'},
+      };
     }
   }
 }

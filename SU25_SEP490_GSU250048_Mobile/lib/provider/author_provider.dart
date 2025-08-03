@@ -1,39 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/services/author_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:jwt_decode/jwt_decode.dart';
+import '../services/author_service.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _token;
-  String? _avatarUrl;
-  String? get token => _token;
-  String? get avatarUrl => _avatarUrl;
-  bool get isLoggedIn => _token != null;
+  int? _customerId;
+  String? _userName;
+  String? _phone;
 
-  Future<void> loadToken() async {
-    _token = await AuthService.getToken();
-    await _loadAvatar();
-    notifyListeners();
-  }
+  String? get token => _token;
+  int? get customerId => _customerId;
+  String? get userName => _userName;
+  String? get phone => _phone;
+
+  bool get isLoggedIn => _token != null;
 
   Future<void> login(String token) async {
     _token = token;
+
+    Map<String, dynamic> payload = Jwt.parseJwt(token);
+    final idStr = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+    if (idStr != null) {
+      _customerId = int.tryParse(idStr.toString());
+      print('customerId from token: $_customerId');
+    } else {
+      print(' Không tìm thấy customerId trong token');
+    }
+
+    _userName = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+    _phone = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+
     await AuthService.saveToken(token);
+    notifyListeners();
+  }
+
+
+
+  Future<void> loadToken() async {
+    _token = await AuthService.getToken();
+    _customerId = await AuthService.getCustomerId();
+
+    if (_token != null) {
+      Map<String, dynamic> payload = Jwt.parseJwt(_token!);
+
+      _userName = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+      _phone = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+    }
+
     notifyListeners();
   }
 
   Future<void> logout() async {
     _token = null;
+    _customerId = null;
+    _userName = null;
+    _phone = null;
     await AuthService.clearToken();
-    notifyListeners();
-  }
-  Future<void> _loadAvatar() async{
-    final user = FirebaseAuth.instance.currentUser;
-    _avatarUrl = user?.photoURL;
-  }
-  Future<void> updateAvatar(String url) async {
-    _avatarUrl = url;
-    final user = FirebaseAuth.instance.currentUser;
-    await user?.updatePhotoURL(url);
     notifyListeners();
   }
 }

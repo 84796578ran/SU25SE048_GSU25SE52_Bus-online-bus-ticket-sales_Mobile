@@ -1,77 +1,65 @@
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
-import 'package:mobile/provider/author_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:mobile/provider/author_provider.dart';
+import 'package:mobile/services/author_service.dart';
+import 'package:go_router/go_router.dart';
 
-class ProfilePage extends StatefulWidget {
-  static final path = "/profile";
+class ProfilePage extends StatelessWidget {
+  static final path = '/profile';
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends State<ProfilePage> {
-  @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hồ sơ cá nhân'),
+        title: const Text('Thông tin cá nhân'),
         centerTitle: true,
+        backgroundColor: const Color(0xff447def),
       ),
-      body: auth.isLoggedIn
-          ? SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 50,
-              backgroundImage: auth.avatarUrl != null
-                  ? NetworkImage(auth.avatarUrl!)
-                  : const AssetImage('assets/avatar_placeholder.png')
-              as ImageProvider,
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.person, size: 50, color: Colors.white),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
-              'Token: ${auth.token ?? "(Không có token)"}',
-              style: const TextStyle(color: Colors.grey),
+              authProvider.userName ?? 'Chưa có tên',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 32),
-
-            // 🚌 Placeholder chuyến xe
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text('🚌 Chuyến xe đã đặt',
-                  style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text(
+              authProvider.phone ?? 'Chưa có số điện thoại',
+              style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 12),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.directions_bus),
-                title: const Text('Cần Thơ → Hà Nội'),
-                subtitle: const Text('Khởi hành: 14:00 | Ghế B2'),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await AuthService.clearToken();
+                  context.go('/login'); // chuyển về màn login
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Đăng xuất'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () async {
-                await auth.logout();
-                if (!mounted) return;
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              icon: const Icon(Icons.logout),
-              label: const Text('Đăng xuất'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                minimumSize: const Size.fromHeight(48),
-              ),
-            ),
+            )
           ],
         ),
-      )
-          : const Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }

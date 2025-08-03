@@ -1,10 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mobile/pages/app_route.dart';
 import 'package:mobile/provider/author_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:mobile/services/navigation_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
