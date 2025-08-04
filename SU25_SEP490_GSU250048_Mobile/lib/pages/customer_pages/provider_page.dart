@@ -1,7 +1,7 @@
 import  'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile/pages/customer_pages/screens/history/history_screen.dart';
-import 'package:mobile/pages/customer_pages/screens/home_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/home/home_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/notification/notification_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_screen.dart';
 import '../commmon_pages/profile_page.dart';

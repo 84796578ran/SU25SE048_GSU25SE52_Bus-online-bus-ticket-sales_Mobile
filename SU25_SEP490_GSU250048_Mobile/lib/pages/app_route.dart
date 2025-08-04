@@ -4,13 +4,14 @@ import 'package:mobile/pages/commmon_pages/login_page.dart';
 import 'package:mobile/pages/commmon_pages/profile_page.dart';
 import 'package:mobile/pages/customer_pages/provider_page.dart';
 import 'package:mobile/pages/customer_pages/screens/history/history_screen.dart';
-import 'package:mobile/pages/customer_pages/screens/home_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/home/home_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/notification/notification_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_result_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_result_detail.dart';
 import 'package:mobile/services/navigation_service.dart';
 import '../models/BookingData.dart';
+import '../models/customer.dart';
 import '../models/ticket.dart';
 import '../services/author_service.dart';
 import '../widget/webview_widget.dart';
@@ -43,14 +44,20 @@ class AppRouter {
             GoRoute(
               path: '/customer/history/detail',
               builder: (BuildContext context, GoRouterState state) {
-                final ticket = state.extra as Ticket?;
-                if (ticket == null) {
+                final Map<String, dynamic>? data = state.extra as Map<String, dynamic>?;
+
+                if (data == null || !data.containsKey('ticket') || !data.containsKey('customer')) {
                   return Scaffold(
                     appBar: AppBar(title: const Text('Lỗi')),
-                    body: const Center(child: Text('Không tìm thấy thông tin vé.')),
+                    body: const Center(child: Text('Hiện tại, khách hàng chưa có vé nào.')),
                   );
                 }
-                return HistoryDetailScreen(ticket: ticket);
+
+                // Lấy đối tượng ticket và customer từ Map
+                final ticket = data['ticket'] as Ticket;
+                final customer = data['customer'] as Customer;
+
+                return HistoryDetailScreen(ticket: ticket, customer: customer);
               },
             ),
             GoRoute(

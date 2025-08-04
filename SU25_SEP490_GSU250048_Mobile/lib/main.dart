@@ -10,7 +10,16 @@ import 'package:mobile/services/navigation_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //HttpOverrides.global = MyHttpOverride();
-  await dotenv.load(fileName: ".env.prod");
+  await dotenv.load(fileName: ".env");
+
+  final env = dotenv.env['APP_ENV'];
+  if (env == 'development') {
+    await dotenv.load(fileName: ".env.dev", mergeWith: dotenv.env);
+  } else if (env == 'production') {
+    await dotenv.load(fileName: ".env.prod", mergeWith: dotenv.env);
+  } else {
+    throw Exception('APP_ENV không hợp lệ: $env');
+  }
   await Firebase.initializeApp();
   runApp(
       MultiProvider(

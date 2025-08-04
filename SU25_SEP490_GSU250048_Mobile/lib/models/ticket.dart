@@ -1,15 +1,17 @@
 class Ticket {
+  final int id; // Đã thêm trường id có thể null
   final String ticketId;
   final String? customerId;
   final String? customerName;
   final int seatId;
   final double price;
   final DateTime createDate;
-  final String? fromTripStation; // Đã cập nhật thành String
-  final String? toTripStation; // Đã cập nhật thành String
+  final String? fromTripStation;
+  final String? toTripStation;
   final int status;
 
   Ticket({
+    required this.id, // Đã thêm id vào constructor, có thể null
     required this.ticketId,
     required this.customerId,
     required this.customerName,
@@ -23,6 +25,7 @@ class Ticket {
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
+      id: json['id'] as int, // Đã thêm id và ép kiểu thành int?
       ticketId: json['ticketId'] as String,
       customerId: json['customerId']?.toString(),
       customerName: json['customerName']?.toString(),
@@ -37,6 +40,7 @@ class Ticket {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id, // Đã thêm id vào đây
       'ticketId': ticketId,
       'customerId': customerId,
       'customerName': customerName,
