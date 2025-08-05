@@ -65,7 +65,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
-              return Center(child: Text('⚠ Lỗi: ${snapshot.error}'));
+              return Center(child: Text('Lỗi: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return const Center(child: Text('Không có lịch sử đặt vé.'));
             }
@@ -85,12 +85,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           MaterialPageRoute(
                             builder: (_) => HistoryDetailScreen(
                               ticket: ticket,
-                              customer: currentCustomer, // Sửa: Truyền customer
+                              customer: currentCustomer,
                             ),
                           ),
                         );
                       } else {
-                        // Xử lý trường hợp customer null nếu cần
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Lỗi: Không tìm thấy thông tin khách hàng.')),
                         );

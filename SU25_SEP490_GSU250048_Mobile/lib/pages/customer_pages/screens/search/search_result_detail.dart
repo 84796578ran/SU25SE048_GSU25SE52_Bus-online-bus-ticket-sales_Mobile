@@ -371,34 +371,60 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
     );
   }
 
+  //
   Widget _buildSeatGrid(List<Seat> seats, Seat? selectedSeat, ValueChanged<Seat> onSeatSelected) {
     if (seats.isEmpty) {
       return const Text('Không có thông tin ghế trống cho chuyến này.');
     }
+
+    // 1. Xác định số cột dựa trên tổng số ghế
+    int totalSeats = seats.length;
+    int crossAxisCount;
+    String alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    // Điều chỉnh số cột tùy thuộc vào loại xe
+    if (totalSeats <= 16) {
+      crossAxisCount = 4; // Xe 16 chỗ thường có 4 cột
+    } else if (totalSeats <= 25) {
+      crossAxisCount = 5; // Xe 25 chỗ thường có 5 cột
+    } else if (totalSeats <= 35) {
+      crossAxisCount = 5; // Xe 35 chỗ thường có 5 cột
+    } else {
+      crossAxisCount = 5; // Xe 45 chỗ thường có 5 cột
+    }
+
+    // 2. Tạo tên ghế theo định dạng "A1, B1, C1..."
+    String getSeatName(int index) {
+      int row = (index / crossAxisCount).floor();
+      int colIndex = index % crossAxisCount;
+
+      // Giả định bảng chữ cái đủ cho số cột
+      String colChar = alphabet[colIndex];
+      return '$colChar${row + 1}';
+    }
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4, // Vẫn giữ 4 cột
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1, // Tỷ lệ khung hình để ghế cao hơn rộng
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount, // Số cột đã được tính toán
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+        childAspectRatio: 0.8, // Tỷ lệ ô ghế
       ),
-      itemCount: seats.length,
+      itemCount: totalSeats,
       itemBuilder: (context, index) {
         final seat = seats[index];
         bool isSelected = seat.id == selectedSeat?.id;
+        final seatName = getSeatName(index);
 
         return GestureDetector(
           onTap: () {
             if (seat.isAvailable) {
               onSeatSelected(seat);
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   SnackBar(content: Text('Bạn đã chọn ghế ${seat.seatId}.')),
-              // );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Ghế ${seat.seatId} đã có người!')),
+                SnackBar(content: Text('Ghế $seatName đã có người!')),
               );
             }
           },
@@ -407,12 +433,11 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
               color: seat.isAvailable
                   ? (isSelected ? Colors.blue.shade300 : Colors.green.shade100)
                   : Colors.red.shade100,
-              // Tạo hình dạng ghế tròn ở đáy
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 topRight: Radius.circular(8),
-                bottomLeft: Radius.circular(20), // Tròn hơn ở dưới
-                bottomRight: Radius.circular(20), // Tròn hơn ở dưới
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
               ),
               border: Border.all(
                 color: seat.isAvailable
@@ -425,21 +450,21 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.event_seat, // Biểu tượng ghế
-                  size: 24, // Kích thước icon
+                  Icons.event_seat,
+                  size: 18,
                   color: seat.isAvailable
                       ? (isSelected ? Colors.white : Colors.green.shade900)
                       : Colors.red.shade900,
                 ),
-                const SizedBox(height: 4), // Khoảng cách giữa icon và số ghế
+                const SizedBox(height: 2),
                 Text(
-                  seat.seatId,
+                  seatName, // Sử dụng tên ghế đã được định dạng
                   style: TextStyle(
                     color: seat.isAvailable
                         ? (isSelected ? Colors.white : Colors.green.shade900)
                         : Colors.red.shade900,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12, // Giảm kích thước font để vừa hơn
+                    fontSize: 10,
                   ),
                 ),
               ],
@@ -449,6 +474,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
       },
     );
   }
+  
 
   Widget _buildSeatLegend() {
     return Padding(

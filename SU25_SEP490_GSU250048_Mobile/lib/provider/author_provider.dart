@@ -10,8 +10,9 @@ class AuthProvider with ChangeNotifier {
   int? _customerId;
   String? _userName;
   String? _phone;
+  bool _isLoading = true;
   Customer? _customer;
-
+  bool get isLoading => _isLoading;
   String? get token => _token;
   int? get customerId => _customerId;
   String? get userName => _userName;

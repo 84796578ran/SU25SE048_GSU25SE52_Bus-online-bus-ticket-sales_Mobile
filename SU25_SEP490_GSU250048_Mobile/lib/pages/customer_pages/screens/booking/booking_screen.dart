@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:mobile/models/TransferTrip.dart';
 import 'package:mobile/models/trip.dart';
 import 'package:mobile/models/seat.dart';
+import 'package:provider/provider.dart';
 import '../../../../models/BookingData.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../../../provider/author_provider.dart';
 import '../payment/vnpay_webview_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -29,6 +31,14 @@ class _BookingScreenState extends State<BookingScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   bool _isMakingPayment = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _nameController.text = authProvider.userName ?? '';
+    _phoneController.text = authProvider.phone ?? '';
+  }
 
   @override
   void dispose() {
@@ -60,9 +70,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
     final dynamic tripOrTransferTrip = widget.bookingData.tripOrTransferTrip;
 
-    // Tạo request body khớp với định nghĩa của backend
     final Map<String, dynamic> requestBody;
-    // Lấy customerId từ widget thay vì gán cứng
     final int customerId = widget.customerId;
 
     if (tripOrTransferTrip is Trip) {
