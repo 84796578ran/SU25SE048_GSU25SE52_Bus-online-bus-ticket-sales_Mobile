@@ -129,39 +129,31 @@ class _LoginPage extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 80, 24, 30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Image.asset('assets/Logo.png', width: 170, height: 170),
-            const Column(
+      body: SafeArea(
+        child: SingleChildScrollView( // 👈 Thêm dòng này
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 80, 24, 30),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 👈 nên bỏ dòng này (giải thích ở dưới)
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-               // Text('Chào mừng bạn đến với', style: TextStyle(fontSize: 28)),
-                Center( // Bọc Text widget bằng Center
+                Center(
+                  child: Image.asset('assets/Logo.png', width: 170, height: 170),
+                ),
+                const SizedBox(height: 20),
+                const Center(
                   child: Text(
                     'Chào mừng bạn đến với',
-                    style: TextStyle(
-                      fontSize: 28,
-                     // fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 28),
                   ),
                 ),
-                Center( // Bọc Text widget bằng Center
+                const Center(
                   child: Text(
                     'XE TIỆN ÍCH',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                 ),
-              ],
-            ),
-            Column(
-              children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
@@ -181,7 +173,7 @@ class _LoginPage extends State<LoginPage> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
                 const Align(
                   alignment: Alignment.center,
                   child: Text(
@@ -189,36 +181,39 @@ class _LoginPage extends State<LoginPage> {
                     style: TextStyle(color: Colors.blue, fontSize: 16),
                   ),
                 ),
+                const SizedBox(height: 30),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : () => _login(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff447def),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                      'Đăng nhập',
+                      style: TextStyle(fontSize: 22, color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Chưa có tài khoản?', style: TextStyle(fontSize: 18)),
+                    SizedBox(width: 6),
+                    Text('Đăng ký ngay', style: TextStyle(fontSize: 18, color: Colors.blue)),
+                  ],
+                ),
               ],
             ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : () => _login(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff447def),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                  'Đăng nhập',
-                  style: TextStyle(fontSize: 22, color: Colors.white),
-                ),
-              ),
-            ),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Chưa có tài khoản?', style: TextStyle(fontSize: 18)),
-                SizedBox(width: 6),
-                Text('Đăng ký ngay', style: TextStyle(fontSize: 18, color: Colors.blue)),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+
 }

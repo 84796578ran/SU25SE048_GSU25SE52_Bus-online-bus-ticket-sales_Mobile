@@ -20,7 +20,7 @@ class CompanyService {
       }
     } catch (e) {
       print(' Lỗi khi fetch popular companies: $e');
-      throw Exception('Không thể tải danh sách công ty phổ biến.');
+      throw Exception('Netword error.');
     }
   }
 }

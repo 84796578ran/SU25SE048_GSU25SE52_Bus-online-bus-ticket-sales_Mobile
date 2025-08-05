@@ -13,10 +13,12 @@ import 'package:mobile/services/navigation_service.dart';
 import '../models/BookingData.dart';
 import '../models/customer.dart';
 import '../models/ticket.dart';
+import '../models/trip.dart';
 import '../services/author_service.dart';
 import '../widget/webview_widget.dart';
 import 'customer_pages/screens/booking/booking_screen.dart';
 import 'customer_pages/screens/history/history_detail_screen.dart';
+import 'customer_pages/screens/home/get_future_trip_result.dart';
 import 'customer_pages/screens/search/search-result-hint.dart';
 
 class AppRouter {
@@ -36,6 +38,18 @@ class AppRouter {
             GoRoute(
               path: '/customer/home',
               builder: (context, state) => const HomeScreen(),
+            ),
+            GoRoute(
+              path: '/customer/future-trips',
+              builder: (BuildContext context, GoRouterState state) {
+                final data = state.extra as Map<String, dynamic>;
+                final int companyId = data['companyId'] as int;
+                final String companyName = data['companyName'] as String;
+                return FutureTripScreen(
+                  companyId: companyId,
+                  companyName: companyName,
+                );
+              },
             ),
             GoRoute(
               path: '/customer/history',

@@ -22,7 +22,6 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> login(String token) async {
     _token = token;
-
     Map<String, dynamic> payload = Jwt.parseJwt(token);
     final idStr = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
     if (idStr != null) {
@@ -31,7 +30,6 @@ class AuthProvider with ChangeNotifier {
     } else {
       print(' Không tìm thấy customerId trong token');
     }
-
     _userName = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
     _phone = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
 
@@ -40,7 +38,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> loadToken() async {
-    _token = await AuthService.getToken();
+      _token = await AuthService.getToken();
      _customerId = await AuthService.getCustomerId();
     if (_token != null) {
       Map<String, dynamic> payload = Jwt.parseJwt(_token!);

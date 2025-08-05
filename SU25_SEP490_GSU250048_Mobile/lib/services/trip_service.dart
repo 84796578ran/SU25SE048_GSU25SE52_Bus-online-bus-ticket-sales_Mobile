@@ -28,6 +28,39 @@ class TripServices {
     return results;
   }
 
+  static Future<List<Trip>> getFutureTripsByCompany(int companyId) async {
+    final token = await AuthService.getToken();
+    if (token == null) {
+      throw Exception('Không có token xác thực. Vui lòng đăng nhập lại.');
+    }
+
+    final uri = Uri.parse('$_baseUrl/Trip/future/by-company/$companyId');
+    print('DEBUG: Gọi API lấy chuyến tương lai theo công ty: $uri');
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print('DEBUG: Trạng thái phản hồi: ${response.statusCode}');
+      print('DEBUG: Nội dung phản hồi: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        return jsonList.map((e) => Trip.fromJson(e)).toList();
+      } else {
+        print('ERROR: Lỗi lấy chuyến tương lai: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('ERROR: Lỗi kết nối khi lấy chuyến tương lai: $e');
+      throw Exception('Lỗi kết nối đến máy chủ. Vui lòng thử lại. Chi tiết: $e');
+    }
+  }
+
   static Future<List<dynamic>> _performApiCall({
     required String endpoint,
     required Map<String, String> queryParams,
@@ -65,9 +98,6 @@ class TripServices {
     }
   }
 
-  // --- HÀM GỐC CỦA BẠN ĐƯỢC GIỮ NGUYÊN TÊN VÀ CHỈNH SỬA LOGIC ĐỂ CHỈ GỌI MỘT LẦN API ---
-
-  // Hàm này sẽ chỉ tìm kiếm CHẶT CHẼ
   static Future<List<dynamic>> searchTrips({
     required int fromLocationId,
     required int fromStationId,
@@ -92,7 +122,6 @@ class TripServices {
     );
   }
 
-  // Hàm tìm kiếm NỚI LỎNG
   static Future<List<dynamic>> searchTripsLoose({
     required int fromLocationId,
     required int toLocationId,
@@ -112,7 +141,6 @@ class TripServices {
     );
   }
 
-  // --- HÀM GỐC KHÔNG THAY ĐỔI, NÓ SẼ GỌI HÀM searchTrips() ĐÃ ĐƯỢC CHỈNH SỬA Ở TRÊN ---
   static Future<List<dynamic>> searchOneWayTrip({
     required int departureStationId,
     required int arrivalStationId,

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:mobile/models/company.dart'; // Model của bạn
-import 'package:mobile/services/company_service.dart'; // Service API của bạn
+import 'package:mobile/services/company_service.dart';
+
+import '../../../../services/trip_service.dart';
+import 'get_future_trip_result.dart'; // Service API của bạn
 
 class HomeScreen extends StatefulWidget {
   static const path = '/customer/home';
@@ -52,24 +55,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         .of(context)
         .size
         .height;
-
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.pinkAccent.shade100,
+        foregroundColor: Colors.white,
+        toolbarHeight: 30,
+      ),
       backgroundColor: const Color(0xFFF5F5F5),
       body: Column(
         children: [
           SizedBox(
-            height: screenHeight / 3,
+            height: screenHeight / 4,
             child: Stack(
               children: [
                 // 🔹 Đường nét đứt phía TRÊN xe
                 Align(
                   alignment: Alignment.center,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 80),
+                    padding: const EdgeInsets.only(top: 25),
                     child: CustomPaint(
                       painter: DottedLinePainter(),
                       child: const SizedBox(
-                        height: 4,
+                        height: 2,
                         width: double.infinity,
                       ),
                     ),
@@ -78,7 +85,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Align(
                   alignment: Alignment.center,
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 70),
+                    padding: const EdgeInsets.only(bottom:60),
+                    child: CustomPaint(
+                      painter: DottedLinePainter(),
+                      child: const SizedBox(
+                        height: 2,
+                        width: double.infinity,
+                      ),
+                    ),
+                  ),
+                ),
+
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 130),
                     child: CustomPaint(
                       painter: DottedLinePainter(),
                       child: const SizedBox(
@@ -89,21 +110,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
 
-                Align(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 200),
-                    child: CustomPaint(
-                      painter: DottedLinePainter(),
-                      child: const SizedBox(
-                        height: 4,
-                        width: double.infinity,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 🚌 Chiếc xe animation
                 Positioned.fill(
                   child: SlideTransition(
                     position: _animation,
@@ -112,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 90),
                         child: Image.asset(
-                          'assets/bus.png',
+                          'assets/buss.png',
                           width: 100,
                           height: 100,
                         ),
@@ -140,7 +146,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          // 🔻 Danh sách các công ty
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refreshCompanies,
@@ -149,70 +154,90 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Lỗi: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  }
+
+                  if (snapshot.hasError) {
                     return const Center(
-                        child: Text('Không có công ty nổi bật.'));
+                      child: Text(
+                        'Đã xảy ra lỗi khi tải dữ liệu!!!',
+                        style: TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                      child: Text('Lỗi kết nối!!! Vui lòng tải lại trang'),
+                    );
                   }
 
                   final companies = snapshot.data!;
+
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 20),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                     itemCount: companies.length,
                     itemBuilder: (context, index) {
                       final company = companies[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(40),
-                          side: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        elevation: 3,
-                        color: const Color(0xFFFFF0F0),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.directions_bus, size: 40,
-                                  color: Colors.blueAccent),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      company.name,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.schedule, size: 16,
-                                            color: Colors.grey),
-                                        const SizedBox(width: 4),
-                                        Text('Số chuyến: ${company
-                                            .numberOfTrips}'),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.star, size: 16,
-                                            color: Colors.amber),
-                                        const SizedBox(width: 4),
-                                        Text('Đánh giá: ${company.averageRating
-                                            .toStringAsFixed(1)}'),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FutureTripScreen(
+                                companyId: company.id,
+                                companyName: company.name,
                               ),
-                            ],
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(40),
+                        child: Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(40),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          elevation: 3,
+                          color: const Color(0xFFFFF0F0),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.directions_bus, size: 40, color: Colors.blueAccent),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        company.name,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.schedule, size: 16, color: Colors.grey),
+                                          const SizedBox(width: 4),
+                                          Text('Số chuyến: ${company.numberOfTrips}'),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.star, size: 16, color: Colors.amber),
+                                          const SizedBox(width: 4),
+                                          Text('Đánh giá: ${company.averageRating.toStringAsFixed(1)}'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -222,6 +247,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
+
         ],
       ),
     );
@@ -232,7 +258,7 @@ class DottedLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.grey
+      ..color = Colors.grey.shade300
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
 
