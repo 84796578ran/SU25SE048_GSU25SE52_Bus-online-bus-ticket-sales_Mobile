@@ -23,4 +23,10 @@ class TransferTrip {
       secondTrip: secondTrip,
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'firstTrip': firstTrip.toJson(),
+      'secondTrip': secondTrip?.toJson(),
+    };
+  }
 }

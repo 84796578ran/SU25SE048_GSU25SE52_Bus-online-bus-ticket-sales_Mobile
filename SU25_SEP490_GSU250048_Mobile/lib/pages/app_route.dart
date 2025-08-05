@@ -4,18 +4,21 @@ import 'package:mobile/pages/commmon_pages/login_page.dart';
 import 'package:mobile/pages/commmon_pages/profile_page.dart';
 import 'package:mobile/pages/customer_pages/provider_page.dart';
 import 'package:mobile/pages/customer_pages/screens/history/history_screen.dart';
-import 'package:mobile/pages/customer_pages/screens/home_screen.dart';
+import 'package:mobile/pages/customer_pages/screens/home/home_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/notification/notification_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_result_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_result_detail.dart';
 import 'package:mobile/services/navigation_service.dart';
 import '../models/BookingData.dart';
+import '../models/customer.dart';
 import '../models/ticket.dart';
+import '../models/trip.dart';
 import '../services/author_service.dart';
 import '../widget/webview_widget.dart';
 import 'customer_pages/screens/booking/booking_screen.dart';
 import 'customer_pages/screens/history/history_detail_screen.dart';
+import 'customer_pages/screens/home/get_future_trip_result.dart';
 import 'customer_pages/screens/search/search-result-hint.dart';
 
 class AppRouter {
@@ -37,20 +40,38 @@ class AppRouter {
               builder: (context, state) => const HomeScreen(),
             ),
             GoRoute(
+              path: '/customer/future-trips',
+              builder: (BuildContext context, GoRouterState state) {
+                final data = state.extra as Map<String, dynamic>;
+                final int companyId = data['companyId'] as int;
+                final String companyName = data['companyName'] as String;
+                return FutureTripScreen(
+                  companyId: companyId,
+                  companyName: companyName,
+                );
+              },
+            ),
+            GoRoute(
               path: '/customer/history',
               builder: (context, state) => const HistoryScreen(),
             ),
             GoRoute(
               path: '/customer/history/detail',
               builder: (BuildContext context, GoRouterState state) {
-                final ticket = state.extra as Ticket?;
-                if (ticket == null) {
+                final Map<String, dynamic>? data = state.extra as Map<String, dynamic>?;
+
+                if (data == null || !data.containsKey('ticket') || !data.containsKey('customer')) {
                   return Scaffold(
                     appBar: AppBar(title: const Text('Lỗi')),
-                    body: const Center(child: Text('Không tìm thấy thông tin vé.')),
+                    body: const Center(child: Text('Hiện tại, khách hàng chưa có vé nào.')),
                   );
                 }
-                return HistoryDetailScreen(ticket: ticket);
+
+                // Lấy đối tượng ticket và customer từ Map
+                final ticket = data['ticket'] as Ticket;
+                final customer = data['customer'] as Customer;
+
+                return HistoryDetailScreen(ticket: ticket, customer: customer);
               },
             ),
             GoRoute(

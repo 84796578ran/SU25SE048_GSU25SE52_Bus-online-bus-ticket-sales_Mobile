@@ -83,7 +83,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
           toStationId: directTrip.toStationId!,
         );
         setState(() { _directTripSeats = seats; });
-        _checkAndNotifyNoAvailableSeats(seats); // Kiểm tra và thông báo
+        _checkAndNotifyNoAvailableSeats(seats);
       } catch (e) {
         setState(() { _errorMessage = e.toString(); });
         print('ERROR: Lỗi khi lấy ghế chuyến trực tiếp: $e');
@@ -457,7 +457,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildLegendItem(Colors.green.shade100, Colors.green, 'Ghế trống'),
-          _buildLegendItem(Colors.blue.shade300, Colors.blue.shade700, 'Ghế đang chờ thanh toán'),
+          _buildLegendItem(Colors.blue.shade300, Colors.blue.shade700, 'Chờ thanh toán'),
           _buildLegendItem(Colors.red.shade100, Colors.red, 'Ghế đã đặt'),
         ],
       ),

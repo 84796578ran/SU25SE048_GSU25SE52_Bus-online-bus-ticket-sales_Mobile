@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../models/customer.dart';
 import '../../../../models/ticket.dart';
 import '../../../../services/ticket_service.dart';
 import '../../../../provider/author_provider.dart';
@@ -47,6 +48,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final currentCustomer = authProvider.customer; // Đã lấy customer từ provider
 
     return Scaffold(
       appBar: AppBar(title: const Text('Lịch sử đặt vé')),
@@ -57,13 +59,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
           builder: (context, snapshot) {
             if (!authProvider.isLoggedIn) {
               return const Center(
-                  child: Text('🔒 Vui lòng đăng nhập để xem lịch sử vé.'));
+                  child: Text(' Vui lòng đăng nhập để xem lịch sử vé.'));
             }
 
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
-              return Center(child: Text('⚠️ Lỗi: ${snapshot.error}'));
+              return Center(child: Text('⚠ Lỗi: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return const Center(child: Text('Không có lịch sử đặt vé.'));
             }
@@ -77,12 +79,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: InkWell(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => HistoryDetailScreen(ticket: ticket),
-                        ),
-                      );
+                      if (currentCustomer != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HistoryDetailScreen(
+                              ticket: ticket,
+                              customer: currentCustomer, // Sửa: Truyền customer
+                            ),
+                          ),
+                        );
+                      } else {
+                        // Xử lý trường hợp customer null nếu cần
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Lỗi: Không tìm thấy thông tin khách hàng.')),
+                        );
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),

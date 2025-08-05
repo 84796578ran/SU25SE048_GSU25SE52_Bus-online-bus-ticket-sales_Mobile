@@ -15,15 +15,15 @@ class AuthService {
         final id = int.tryParse(idStr.toString());
         if (id != null) {
           await prefs.setInt(_customerIdKey, id);
-          print('✅ Saved customerId: $id');
+          print(' Saved customerId: $id');
         } else {
-          print('❌ Không thể parse customerId từ token');
+          print(' Không thể parse customerId từ token');
         }
       } else {
-        print('❌ Không tìm thấy claim customerId trong token');
+        print(' Không tìm thấy claim customerId trong token');
       }
     } catch (e) {
-      print('❌ Lỗi khi decode token: $e');
+      print(' Lỗi khi decode token: $e');
     }
   }
 
