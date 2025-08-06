@@ -6,11 +6,13 @@ import 'package:mobile/models/TransferTrip.dart';
 import 'package:mobile/models/seat.dart';
 import 'package:mobile/services/seat_service.dart';
 import '../../../../models/BookingData.dart';
+import '../../../../models/station.dart';
 import '../booking/booking_screen.dart';
 class SearchResultDetailScreen extends StatefulWidget {
   static const path = '/customer/search-result-detail';
   final dynamic tripOrTransferTrip;
-  const SearchResultDetailScreen({Key? key, required this.tripOrTransferTrip}) : super(key: key);
+  final Map<int, Station> stations;
+  const SearchResultDetailScreen({Key? key, required this.tripOrTransferTrip, required this.stations}) : super(key: key);
   @override
   _SearchResultDetailScreenState createState() => _SearchResultDetailScreenState();
 }
@@ -21,10 +23,8 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
   Seat? _selectedDirectSeat;
   List<Seat> _firstTripSeats = [];
   Seat? _selectedFirstTripSeat;
-
   List<Seat> _secondTripSeats = [];
   Seat? _selectedSecondTripSeat;
-
   int _transferTripStep = 0;
 
   @override
@@ -32,6 +32,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
     super.initState();
     _fetchSeatAvailability();
   }
+
   void _checkAndNotifyNoAvailableSeats(List<Seat> seats) {
     bool hasAvailableSeats = seats.any((seat) => seat.isAvailable);
     if (!hasAvailableSeats) {
@@ -108,7 +109,9 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
           fromStationId: transferTrip.firstTrip.fromStationId!,
           toStationId: transferTrip.firstTrip.toStationId!,
         );
-        setState(() { _firstTripSeats = seats; _transferTripStep = 0; });
+        setState(() {
+          _firstTripSeats = seats;
+          _transferTripStep = 0; });
         _checkAndNotifyNoAvailableSeats(seats); // Kiểm tra và thông báo cho chuyến đầu tiên
       } catch (e) {
         setState(() { _errorMessage = e.toString(); });
@@ -122,7 +125,9 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
   Future<void> _fetchSecondTripSeatAvailability() async {
     final TransferTrip transferTrip = widget.tripOrTransferTrip as TransferTrip;
     if (transferTrip.secondTrip == null) {
-      setState(() { _transferTripStep = 2; _isLoading = false; });
+      setState(() {
+        _transferTripStep = 2;
+        _isLoading = false; });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Chuyến trung chuyển này chỉ có một chặng. Chuyển sang xác nhận.')),
       );
@@ -198,14 +203,11 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        // Logic chính xác cho chuyến đi trực tiếp
-                        // Tạo đối tượng BookingData từ thông tin đã chọn
                         final bookingData = BookingData(
                           tripOrTransferTrip: directTrip,
-                          selectedFirstSeat: _selectedDirectSeat, // Sử dụng biến đúng
-                          stations: {}, // Vẫn cần điền dữ liệu thực vào đây
+                          selectedFirstSeat: _selectedDirectSeat,
+                          stations: widget.stations,
                         );
-                        // Điều hướng đến BookingScreen và truyền đối tượng BookingData
                         context.push(BookingScreen.path, extra: bookingData);
                       },
                       child: const Text('Thanh toán'),
@@ -376,29 +378,24 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
     if (seats.isEmpty) {
       return const Text('Không có thông tin ghế trống cho chuyến này.');
     }
-
-    // 1. Xác định số cột dựa trên tổng số ghế
     int totalSeats = seats.length;
     int crossAxisCount;
     String alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    // Điều chỉnh số cột tùy thuộc vào loại xe
     if (totalSeats <= 16) {
-      crossAxisCount = 4; // Xe 16 chỗ thường có 4 cột
+      crossAxisCount = 4;
     } else if (totalSeats <= 25) {
-      crossAxisCount = 5; // Xe 25 chỗ thường có 5 cột
+      crossAxisCount = 5;
     } else if (totalSeats <= 35) {
-      crossAxisCount = 5; // Xe 35 chỗ thường có 5 cột
+      crossAxisCount = 5;
     } else {
-      crossAxisCount = 5; // Xe 45 chỗ thường có 5 cột
+      crossAxisCount = 5;
     }
 
-    // 2. Tạo tên ghế theo định dạng "A1, B1, C1..."
     String getSeatName(int index) {
       int row = (index / crossAxisCount).floor();
       int colIndex = index % crossAxisCount;
 
-      // Giả định bảng chữ cái đủ cho số cột
       String colChar = alphabet[colIndex];
       return '$colChar${row + 1}';
     }
@@ -407,10 +404,10 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount, // Số cột đã được tính toán
+        crossAxisCount: crossAxisCount,
         crossAxisSpacing: 4,
         mainAxisSpacing: 4,
-        childAspectRatio: 0.8, // Tỷ lệ ô ghế
+        childAspectRatio: 0.9, // Tỷ lệ ô ghế
       ),
       itemCount: totalSeats,
       itemBuilder: (context, index) {
@@ -495,7 +492,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
       children: [
         Container(
           width: 20,
-          height: 20,
+          height: 15,
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(4),

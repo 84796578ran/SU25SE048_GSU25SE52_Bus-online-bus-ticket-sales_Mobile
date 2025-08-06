@@ -25,8 +25,7 @@ class TicketService {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      final filtered = data.where((item) => item['status'] == 4).toList();
-      return filtered.map((json) => Ticket.fromJson(json)).toList();
+      return data.map((json) => Ticket.fromJson(json)).toList();
     } else {
       print('Lỗi API: ${response.statusCode} - ${response.body}');
       throw Exception('Failed to load ticket history');

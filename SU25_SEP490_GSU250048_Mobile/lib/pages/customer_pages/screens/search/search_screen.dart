@@ -62,10 +62,8 @@ class _SearchScreenState extends State<SearchScreen> {
         LocationService.getProvinces(),
         StationService.getAllStations(),
       ]);
-
       final provinces = results[0] as List<Location>;
       final stations = results[1] as List<Station>;
-
       setState(() {
         _allProvincesList = provinces;
         _allStationsList = stations;
@@ -214,11 +212,12 @@ class _SearchScreenState extends State<SearchScreen> {
     if (_selectedToLocationId == null) {
       errors.add('Vui lòng chọn tỉnh/thành phố đích đến.');
     }
-    if (_selectedDepartureStation == null) {
-      errors.add('Vui lòng chọn điểm đón.');
-    }
+
     if (_selectedArrivalStation == null) {
       errors.add('Vui lòng chọn điểm trả.');
+    }
+    if (_selectedDepartureStation == null) {
+      errors.add('Vui lòng chọn điểm đón.');
     }
     if (_timeStart == null) {
       errors.add('Vui lòng chọn ngày đi.');
@@ -280,10 +279,15 @@ class _SearchScreenState extends State<SearchScreen> {
       if (fullResults.isNotEmpty) {
         if (mounted) {
           setState(() => _isLoading = false);
-          context.push(
-            '/customer/search-result',
-            extra: fullResults,
-          );
+          Map<int, Station> stationsMap = {};
+          if (_selectedDepartureStation != null) {
+            stationsMap[_selectedDepartureStation!.id] = _selectedDepartureStation!;
+          }
+          if (_selectedArrivalStation != null) {
+            stationsMap[_selectedArrivalStation!.id] = _selectedArrivalStation!;
+          }
+
+          context.push('/customer/search-result', extra: {'results': fullResults, 'stations': stationsMap});
         }
         return;
       }
@@ -403,7 +407,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   _selectedFromProvinceName = selectedLocation?.name;
                   _selectedFromLocationId = selectedLocation?.id;
                   _filterStationsByLocation(_selectedFromProvinceName, true);
-                  // Xóa trạm đón/trả khi đổi tỉnh
                   _selectedDepartureStation = null;
                   _selectedArrivalStation = null;
                 });
@@ -458,9 +461,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   _selectedToProvinceName = selectedLocation?.name;
                   _selectedToLocationId = selectedLocation?.id;
                   _filterStationsByLocation(_selectedToProvinceName, false);
-                  // Xóa trạm đón/trả khi đổi tỉnh
-                  _selectedDepartureStation = null;
-                  _selectedArrivalStation = null;
+                   _selectedArrivalStation = null;
                 });
               },
               validator: (Location? value) {
@@ -473,12 +474,12 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(height: 20),
 
             GenericDropdownSearch<Station>(
-              labelText: 'Điểm trả',
+              labelText: 'Điểm xuống',
               hintText: _selectedToLocationId == null
                   ? 'Vui lòng chọn đích đến (tỉnh) trước'
                   : _arrivalStations.isEmpty
-                  ? 'Không có điểm trả'
-                  : 'Chọn điểm trả',
+                  ? 'Không có điểm xuống'
+                  : 'Chọn điểm xuống',
               items: _arrivalStations,
               selectedItem: _selectedArrivalStation,
               itemAsString: (Station station) => station.name,
