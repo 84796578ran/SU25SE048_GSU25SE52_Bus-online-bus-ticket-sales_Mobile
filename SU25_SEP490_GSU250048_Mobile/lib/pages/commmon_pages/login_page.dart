@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
@@ -26,6 +27,10 @@ class _LoginPage extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    if (kDebugMode) {
+      _phoneController.text = '0938080462';
+      _passwordController.text = '18012003';
+    }
     _checkIfLoggedIn();
   }
 

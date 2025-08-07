@@ -6,11 +6,13 @@ import 'package:mobile/models/TransferTrip.dart';
 import 'package:mobile/models/seat.dart';
 import 'package:mobile/services/seat_service.dart';
 import '../../../../models/BookingData.dart';
+import '../../../../models/station.dart';
 import '../booking/booking_screen.dart';
 class SearchResultDetailScreen extends StatefulWidget {
   static const path = '/customer/search-result-detail';
   final dynamic tripOrTransferTrip;
-  const SearchResultDetailScreen({Key? key, required this.tripOrTransferTrip}) : super(key: key);
+  final Map<int, Station> stations;
+  const SearchResultDetailScreen({Key? key, required this.tripOrTransferTrip, required this.stations}) : super(key: key);
   @override
   _SearchResultDetailScreenState createState() => _SearchResultDetailScreenState();
 }
@@ -21,10 +23,8 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
   Seat? _selectedDirectSeat;
   List<Seat> _firstTripSeats = [];
   Seat? _selectedFirstTripSeat;
-
   List<Seat> _secondTripSeats = [];
   Seat? _selectedSecondTripSeat;
-
   int _transferTripStep = 0;
 
   @override
@@ -32,6 +32,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
     super.initState();
     _fetchSeatAvailability();
   }
+
   void _checkAndNotifyNoAvailableSeats(List<Seat> seats) {
     bool hasAvailableSeats = seats.any((seat) => seat.isAvailable);
     if (!hasAvailableSeats) {
@@ -108,7 +109,9 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
           fromStationId: transferTrip.firstTrip.fromStationId!,
           toStationId: transferTrip.firstTrip.toStationId!,
         );
-        setState(() { _firstTripSeats = seats; _transferTripStep = 0; });
+        setState(() {
+          _firstTripSeats = seats;
+          _transferTripStep = 0; });
         _checkAndNotifyNoAvailableSeats(seats); // Kiểm tra và thông báo cho chuyến đầu tiên
       } catch (e) {
         setState(() { _errorMessage = e.toString(); });
@@ -122,7 +125,9 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
   Future<void> _fetchSecondTripSeatAvailability() async {
     final TransferTrip transferTrip = widget.tripOrTransferTrip as TransferTrip;
     if (transferTrip.secondTrip == null) {
-      setState(() { _transferTripStep = 2; _isLoading = false; });
+      setState(() {
+        _transferTripStep = 2;
+        _isLoading = false; });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Chuyến trung chuyển này chỉ có một chặng. Chuyển sang xác nhận.')),
       );
@@ -198,14 +203,11 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        // Logic chính xác cho chuyến đi trực tiếp
-                        // Tạo đối tượng BookingData từ thông tin đã chọn
                         final bookingData = BookingData(
                           tripOrTransferTrip: directTrip,
-                          selectedFirstSeat: _selectedDirectSeat, // Sử dụng biến đúng
-                          stations: {}, // Vẫn cần điền dữ liệu thực vào đây
+                          selectedFirstSeat: _selectedDirectSeat,
+                          stations: widget.stations,
                         );
-                        // Điều hướng đến BookingScreen và truyền đối tượng BookingData
                         context.push(BookingScreen.path, extra: bookingData);
                       },
                       child: const Text('Thanh toán'),
@@ -371,34 +373,55 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
     );
   }
 
+  //
   Widget _buildSeatGrid(List<Seat> seats, Seat? selectedSeat, ValueChanged<Seat> onSeatSelected) {
     if (seats.isEmpty) {
       return const Text('Không có thông tin ghế trống cho chuyến này.');
     }
+    int totalSeats = seats.length;
+    int crossAxisCount;
+    String alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+    if (totalSeats <= 16) {
+      crossAxisCount = 4;
+    } else if (totalSeats <= 25) {
+      crossAxisCount = 5;
+    } else if (totalSeats <= 35) {
+      crossAxisCount = 5;
+    } else {
+      crossAxisCount = 5;
+    }
+
+    String getSeatName(int index) {
+      int row = (index / crossAxisCount).floor();
+      int colIndex = index % crossAxisCount;
+
+      String colChar = alphabet[colIndex];
+      return '$colChar${row + 1}';
+    }
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4, // Vẫn giữ 4 cột
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 1, // Tỷ lệ khung hình để ghế cao hơn rộng
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+        childAspectRatio: 0.9, // Tỷ lệ ô ghế
       ),
-      itemCount: seats.length,
+      itemCount: totalSeats,
       itemBuilder: (context, index) {
         final seat = seats[index];
         bool isSelected = seat.id == selectedSeat?.id;
+        final seatName = getSeatName(index);
 
         return GestureDetector(
           onTap: () {
             if (seat.isAvailable) {
               onSeatSelected(seat);
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   SnackBar(content: Text('Bạn đã chọn ghế ${seat.seatId}.')),
-              // );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Ghế ${seat.seatId} đã có người!')),
+                SnackBar(content: Text('Ghế $seatName đã có người!')),
               );
             }
           },
@@ -407,12 +430,11 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
               color: seat.isAvailable
                   ? (isSelected ? Colors.blue.shade300 : Colors.green.shade100)
                   : Colors.red.shade100,
-              // Tạo hình dạng ghế tròn ở đáy
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 topRight: Radius.circular(8),
-                bottomLeft: Radius.circular(20), // Tròn hơn ở dưới
-                bottomRight: Radius.circular(20), // Tròn hơn ở dưới
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
               ),
               border: Border.all(
                 color: seat.isAvailable
@@ -425,21 +447,21 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.event_seat, // Biểu tượng ghế
-                  size: 24, // Kích thước icon
+                  Icons.event_seat,
+                  size: 18,
                   color: seat.isAvailable
                       ? (isSelected ? Colors.white : Colors.green.shade900)
                       : Colors.red.shade900,
                 ),
-                const SizedBox(height: 4), // Khoảng cách giữa icon và số ghế
+                const SizedBox(height: 2),
                 Text(
-                  seat.seatId,
+                  seatName, // Sử dụng tên ghế đã được định dạng
                   style: TextStyle(
                     color: seat.isAvailable
                         ? (isSelected ? Colors.white : Colors.green.shade900)
                         : Colors.red.shade900,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12, // Giảm kích thước font để vừa hơn
+                    fontSize: 10,
                   ),
                 ),
               ],
@@ -449,6 +471,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
       },
     );
   }
+  
 
   Widget _buildSeatLegend() {
     return Padding(
@@ -469,7 +492,7 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
       children: [
         Container(
           width: 20,
-          height: 20,
+          height: 15,
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(4),

@@ -6,12 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_result_detail.dart';
 import '../../../../../models/trip.dart';
 import '../../../../models/TransferTrip.dart';
+import '../../../../models/station.dart';
 
 class SearchResultScreen extends StatelessWidget {
   static const path = '/customer/search-result';
   final List<dynamic> results;
+  final Map<int, Station> stations;
 
-  const SearchResultScreen({Key? key, required this.results}) : super(key: key);
+  const SearchResultScreen({Key? key, required this.results, required this.stations}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,11 +45,10 @@ class SearchResultScreen extends StatelessWidget {
         itemCount: sortedResults.length,
         itemBuilder: (context, index) {
           final item = sortedResults[index];
-
           if (item is Trip) {
-            return InkWell( // Đảm bảo toàn bộ Card có thể nhấn
-              onTap: () {
-                context.push(SearchResultDetailScreen.path, extra: item);
+            return InkWell(
+                onTap: () {
+                  context.push(SearchResultDetailScreen.path, extra: {'tripOrTransferTrip': item, 'stations': stations});
               },
               child: Card(
                 margin: const EdgeInsets.all(8.0),
@@ -74,7 +75,7 @@ class SearchResultScreen extends StatelessWidget {
           } else if (item is TransferTrip) {
             return InkWell( // Đảm bảo toàn bộ Card có thể nhấn
               onTap: () {
-                context.push(SearchResultDetailScreen.path, extra: item);
+                context.push(SearchResultDetailScreen.path, extra: {'tripOrTransferTrip': item, 'stations': stations});
               },
               child: Card(
                 margin: const EdgeInsets.all(8.0),

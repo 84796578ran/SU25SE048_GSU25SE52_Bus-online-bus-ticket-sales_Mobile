@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:mobile/services/trip_service.dart';
 import 'package:mobile/services/location_service.dart';
@@ -6,12 +5,12 @@ import 'package:mobile/services/station_service.dart';
 import 'package:mobile/models/location.dart';
 import 'package:mobile/models/station.dart';
 import 'package:mobile/widget/datePicker_widget.dart';
-import 'package:collection/collection.dart'; // Cần để sử dụng firstWhereOrNull
-import '../../../../models/trip.dart'; // Đảm bảo đường dẫn này đúng
-import 'package:mobile/widget/gerneric_dropdown.dart'; // Lỗi chính tả ở đây, phải là 'generic_dropdown.dart'
+import 'package:collection/collection.dart';
+import '../../../../models/trip.dart';// Sửa lỗi chính tả
 import 'package:go_router/go_router.dart';
 
 import '../../../../services/navigation_service.dart';
+import '../../../../widget/gerneric_dropdown.dart';
 
 enum TripType { oneWay, roundTrip }
 
@@ -24,26 +23,21 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  String? _selectedFromProvinceName; // Tên tỉnh/thành phố xuất phát
-  int? _selectedFromLocationId; // ID của tỉnh/thành phố xuất phát
+  String? _selectedFromProvinceName;
+  int? _selectedFromLocationId;
 
-  String? _selectedToProvinceName; // Tên tỉnh/thành phố đích đến
-  int? _selectedToLocationId; // ID của tỉnh/thành phố đích đến
+  String? _selectedToProvinceName;
+  int? _selectedToLocationId;
 
-  // Biến cho Điểm đón/trả (Station)
-  Station? _selectedDepartureStation; // Điểm đón cụ thể
-  Station? _selectedArrivalStation; // Điểm trả cụ thể
+  Station? _selectedDepartureStation;
+  Station? _selectedArrivalStation;
 
   DateTime? _timeStart;
   DateTime? _returnDate;
 
-  // Danh sách tất cả các tỉnh/thành phố (đối tượng Location)
   List<Location> _allProvincesList = [];
-
-  // Danh sách tất cả các điểm đón/trả (Station) đã tải
   List<Station> _allStationsList = [];
 
-  // Danh sách các điểm đón/trả (Station) theo tỉnh đã chọn (được lọc từ _allStationsList)
   List<Station> _departureStations = [];
   List<Station> _arrivalStations = [];
 
@@ -55,11 +49,10 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    _timeStart = DateTime.now(); // Gán giá trị ban đầu cho _timeStart
-    _loadAllData(); // Tải tất cả dữ liệu cần thiết ngay khi khởi tạo
+    _timeStart = DateTime.now();
+    _loadAllData();
   }
 
-  // Phương thức mới để tải tất cả dữ liệu (tỉnh và trạm)
   Future<void> _loadAllData() async {
     setState(() {
       _isLoading = true;
@@ -69,10 +62,8 @@ class _SearchScreenState extends State<SearchScreen> {
         LocationService.getProvinces(),
         StationService.getAllStations(),
       ]);
-
       final provinces = results[0] as List<Location>;
       final stations = results[1] as List<Station>;
-
       setState(() {
         _allProvincesList = provinces;
         _allStationsList = stations;
@@ -94,7 +85,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  // Hàm để lọc điểm đón/trả dựa trên locationName đã chọn
   void _filterStationsByLocation(String? locationName, bool isDeparture) {
     setState(() {
       if (isDeparture) {
@@ -117,16 +107,15 @@ class _SearchScreenState extends State<SearchScreen> {
               .toList();
           print('DEBUG: Đã lọc ${_arrivalStations.length} điểm trả cho tỉnh/thành phố "$locationName".');
         } else {
-          _arrivalStations = []; // Nếu không có tên địa điểm, không có trạm nào
+          _arrivalStations = [];
         }
       }
     });
   }
 
-  // DI CHUYỂN CÁC HÀM NÀY VÀO TRONG LỚP _SearchScreenState
   void _pickDate() async {
     final DateTime initialDate = _timeStart ?? DateTime.now();
-    final DateTime firstDate = DateTime.now(); // Ngày đầu tiên cho phép chọn là hôm nay
+    final DateTime firstDate = DateTime.now();
 
     final pickedDate = await showDatePicker(
       context: context,
@@ -138,11 +127,12 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() {
         _timeStart = pickedDate;
         if (_returnDate != null && _returnDate!.isBefore(_timeStart!)) {
-          _returnDate = _timeStart; // _Đặt ngày về bằng ngày đi nếu ngày về đã chọn sớm hơn
+          _returnDate = _timeStart;
         }
       });
     }
   }
+
   void _pickReturnDate() async {
     final DateTime initialDate = _returnDate ?? _timeStart ?? DateTime.now();
     final DateTime firstDateForReturn = _timeStart ?? DateTime.now();
@@ -159,9 +149,29 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  // Hàm hiển thị loader
+  void _showSameStationErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Thông báo'),
+        content: const Text('Không thể chọn trạm đi và trạm đến giống nhau.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              setState(() {
+                _selectedDepartureStation = null;
+                _selectedArrivalStation = null;
+              });
+            },
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showSearchingLoader() {
-    // Sử dụng navigatorKey.currentContext
     final BuildContext? currentContext = navigatorKey.currentContext;
     if (currentContext != null) {
       showDialog(
@@ -186,32 +196,70 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  // Hàm ẩn loader
   void _hideSearchingLoader() {
-    // Sử dụng navigatorKey.currentContext
     final BuildContext? currentContext = navigatorKey.currentContext;
     if (currentContext != null && Navigator.of(currentContext).canPop()) {
       Navigator.of(currentContext).pop();
     }
   }
 
-
   Future<void> _searchTrip() async {
-    // 1. Kiểm tra các giá trị cần thiết
-    if (_selectedFromLocationId == null ||
-        _selectedToLocationId == null ||
-        _selectedDepartureStation == null ||
-        _selectedArrivalStation == null ||
-        _timeStart == null) {
+    List<String> errors = [];
+
+    if (_selectedFromLocationId == null) {
+      errors.add('Vui lòng chọn tỉnh/thành phố xuất phát.');
+    }
+    if (_selectedToLocationId == null) {
+      errors.add('Vui lòng chọn tỉnh/thành phố đích đến.');
+    }
+
+    if (_selectedArrivalStation == null) {
+      errors.add('Vui lòng chọn điểm trả.');
+    }
+    if (_selectedDepartureStation == null) {
+      errors.add('Vui lòng chọn điểm đón.');
+    }
+    if (_timeStart == null) {
+      errors.add('Vui lòng chọn ngày đi.');
+    }
+    if (errors.isNotEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vui lòng chọn đầy đủ thông tin: Xuất phát, Điểm đón, Đích đến và Điểm trả.')),
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Thông báo'),
+            content: Text(errors.join('\n')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Đóng'),
+              ),
+            ],
+          ),
         );
       }
       return;
     }
 
-    // 2. Hiển thị loader ban đầu
+    if (_selectedDepartureStation!.id == _selectedArrivalStation!.id) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Thông báo'),
+            content: const Text('Không thể chọn trạm đi và trạm đến giống nhau. Vui lòng chọn lại !!!'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Đóng'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -220,7 +268,6 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     try {
-      // --- BƯỚC 1: Tìm kiếm chặt chẽ ---
       final fullResults = await TripServices.searchTrips(
         fromLocationId: _selectedFromLocationId!,
         fromStationId: _selectedDepartureStation!.id,
@@ -229,19 +276,22 @@ class _SearchScreenState extends State<SearchScreen> {
         date: _timeStart!,
       );
 
-      // --- BƯỚC 2: Xử lý kết quả tìm kiếm chặt chẽ ---
       if (fullResults.isNotEmpty) {
         if (mounted) {
           setState(() => _isLoading = false);
-          context.push(
-            '/customer/search-result',
-            extra: fullResults,
-          );
+          Map<int, Station> stationsMap = {};
+          if (_selectedDepartureStation != null) {
+            stationsMap[_selectedDepartureStation!.id] = _selectedDepartureStation!;
+          }
+          if (_selectedArrivalStation != null) {
+            stationsMap[_selectedArrivalStation!.id] = _selectedArrivalStation!;
+          }
+
+          context.push('/customer/search-result', extra: {'results': fullResults, 'stations': stationsMap});
         }
         return;
       }
 
-      // --- BƯỚC 3: Nếu không có kết quả chặt chẽ, hiển thị loader và tìm kiếm nới lỏng ---
       _showSearchingLoader();
       final looseResults = await TripServices.searchTripsLoose(
         fromLocationId: _selectedFromLocationId!,
@@ -249,15 +299,9 @@ class _SearchScreenState extends State<SearchScreen> {
         date: _timeStart!,
       );
 
-      // Dùng Future.delayed để đảm bảo dialog hiển thị ít nhất 100ms
-      // trước khi đóng để tránh bị nhấp nháy, thay vì 3s như trước
-      // vì 3s là quá lâu và không cần thiết cho hành động này.
       await Future.delayed(const Duration(milliseconds: 100));
-
-      // ĐÓNG LOADER MỘT LẦN DUY NHẤT SAU KHI XONG VIỆC
       _hideSearchingLoader();
 
-      // --- BƯỚC 4: Xử lý kết quả nới lỏng ---
       if (looseResults.isNotEmpty) {
         if (mounted) {
           context.push(
@@ -266,7 +310,6 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         }
       } else {
-        // --- BƯỚC 5: Nếu cả hai lần tìm kiếm đều không có kết quả ---
         if (mounted) {
           showDialog(
             context: context,
@@ -299,26 +342,20 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   @override
-  Widget build(BuildContext context) { // <-- PHƯƠNG THỨC BUILD ĐƯỢC ĐẶT ĐÚNG VỊ TRÍ
+  Widget build(BuildContext context) {
+    // Sửa lỗi ở đây
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(100),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 70),
-          child: AppBar(
-            title: const Text(
-              'Tìm chuyến xe',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
-            ),
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-          ),
+      backgroundColor: Colors.grey.shade100, // Đặt màu nền cho body
+      appBar: AppBar(
+        backgroundColor: Colors.pinkAccent.shade100, // Đặt màu nền cho appbar
+        title: const Text(
+          'Tìm chuyến xe',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
         ),
+        centerTitle: true,
+        elevation: 0,
       ),
-      body: _isLoading && _allProvincesList.isEmpty &&
-          _allStationsList.isEmpty // Hiển thị vòng tròn loading khi mới vào
+      body: _isLoading && _allProvincesList.isEmpty && _allStationsList.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
@@ -357,7 +394,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Dropdown Xuất phát (Tỉnh/Thành phố)
             GenericDropdownSearch<Location>(
               labelText: 'Xuất phát (Tỉnh/Thành phố)',
               hintText: 'Chọn tỉnh/thành phố xuất phát',
@@ -370,8 +406,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 setState(() {
                   _selectedFromProvinceName = selectedLocation?.name;
                   _selectedFromLocationId = selectedLocation?.id;
-                  // GỌI HÀM VỚI TÊN TỈNH/THÀNH PHỐ
                   _filterStationsByLocation(_selectedFromProvinceName, true);
+                  _selectedDepartureStation = null;
+                  _selectedArrivalStation = null;
                 });
               },
               validator: (Location? value) {
@@ -383,13 +420,11 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Dropdown cho Điểm đón (Station)
             GenericDropdownSearch<Station>(
               labelText: 'Điểm đón',
               hintText: _selectedFromLocationId == null
                   ? 'Vui lòng chọn xuất phát (tỉnh) trước'
-                  : _departureStations.isEmpty &&
-                  _selectedFromLocationId != null
+                  : _departureStations.isEmpty
                   ? 'Không có điểm đón'
                   : 'Chọn điểm đón',
               items: _departureStations,
@@ -399,6 +434,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 setState(() {
                   _selectedDepartureStation = value;
                 });
+                if (value != null && value.id == _selectedArrivalStation?.id) {
+                  _showSameStationErrorDialog();
+                }
               },
               enabled: _selectedFromLocationId != null && _departureStations.isNotEmpty,
               validator: (Station? value) {
@@ -410,7 +448,6 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Dropdown Đích đến (Tỉnh/Thành phố)
             GenericDropdownSearch<Location>(
               labelText: 'Đích đến (Tỉnh/Thành phố)',
               hintText: 'Chọn tỉnh/thành phố đến',
@@ -423,8 +460,8 @@ class _SearchScreenState extends State<SearchScreen> {
                 setState(() {
                   _selectedToProvinceName = selectedLocation?.name;
                   _selectedToLocationId = selectedLocation?.id;
-                  // GỌI HÀM VỚI TÊN TỈNH/THÀNH PHỐ
                   _filterStationsByLocation(_selectedToProvinceName, false);
+                   _selectedArrivalStation = null;
                 });
               },
               validator: (Location? value) {
@@ -436,14 +473,13 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Dropdown cho Điểm trả (Station)
             GenericDropdownSearch<Station>(
-              labelText: 'Điểm trả',
+              labelText: 'Điểm xuống',
               hintText: _selectedToLocationId == null
                   ? 'Vui lòng chọn đích đến (tỉnh) trước'
-                  : _arrivalStations.isEmpty && _selectedToLocationId != null
-                  ? 'Không có điểm trả'
-                  : 'Chọn điểm trả',
+                  : _arrivalStations.isEmpty
+                  ? 'Không có điểm xuống'
+                  : 'Chọn điểm xuống',
               items: _arrivalStations,
               selectedItem: _selectedArrivalStation,
               itemAsString: (Station station) => station.name,
@@ -451,6 +487,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 setState(() {
                   _selectedArrivalStation = value;
                 });
+                if (value != null && value.id == _selectedDepartureStation?.id) {
+                  _showSameStationErrorDialog();
+                }
               },
               enabled: _selectedToLocationId != null && _arrivalStations.isNotEmpty,
               validator: (Station? value) {

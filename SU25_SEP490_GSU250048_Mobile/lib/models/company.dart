@@ -19,12 +19,12 @@ class Company {
 
   factory Company.fromJson(Map<String, dynamic> json) {
     return Company(
-      id: json['id'] as int,
-      companyId: json['companyId'] as String,
-      name: json['name'] as String,
-      numberOfRatings: json['numberOfRatings'] as int,
-      averageRating: (json['averageRating'] as num).toDouble(),
-      numberOfTrips: json['numberOfTrips'] as int,
+      id: json['id'] as int? ?? 0,
+      companyId: json['companyId'] as String? ?? '',
+      name: json['name'] as String? ?? 'N/A',
+      numberOfRatings: json['numberOfRatings'] as int? ?? 0,
+      averageRating: (json['averageRating'] as num? ?? 0.0).toDouble(),
+      numberOfTrips: json['numberOfTrips'] as int? ?? 0,
     );
   }
 

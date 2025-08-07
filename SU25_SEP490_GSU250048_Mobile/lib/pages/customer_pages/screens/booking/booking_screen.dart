@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/models/TransferTrip.dart';
+import 'package:mobile/models/station.dart';
 import 'package:mobile/models/trip.dart';
 import 'package:mobile/models/seat.dart';
+import 'package:provider/provider.dart';
 import '../../../../models/BookingData.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../../../provider/author_provider.dart';
+import '../../../../services/author_service.dart';
 import '../payment/vnpay_webview_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -31,19 +35,39 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _isMakingPayment = false;
 
   @override
+  void initState() {
+    super.initState();
+   getData();
+  }
+
+  void getData() async {
+    _nameController.text = await AuthService.getUserName() ?? '';
+    _phoneController.text = await AuthService.getPhone() ?? '';
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
     super.dispose();
-    print('BookingScreen initState - Dữ liệu đã nhận:');
-    print('Trip: ${widget.bookingData.tripOrTransferTrip.tripId}');
-    print('Customer ID: ${widget.customerId}');
   }
 
   String _getStationNameById(dynamic stations, int? stationId) {
     if (stationId == null || stations == null) {
       return "N/A";
     }
+    final station = stations[stationId];
+    if(station == null){
+      return"không tìm thấy";
+    }
+
+    if(station is Station){
+      return station.name;
+    }
+    if(station is String){
+      return station;
+    }
+
     return stations[stationId] ?? "Không tìm thấy";
   }
 
@@ -60,26 +84,22 @@ class _BookingScreenState extends State<BookingScreen> {
 
     final dynamic tripOrTransferTrip = widget.bookingData.tripOrTransferTrip;
 
-    // Tạo request body khớp với định nghĩa của backend
     final Map<String, dynamic> requestBody;
-    // Lấy customerId từ widget thay vì gán cứng
     final int customerId = widget.customerId;
 
     if (tripOrTransferTrip is Trip) {
       final trip = tripOrTransferTrip;
       final selectedSeat = widget.bookingData.selectedFirstSeat;
 
-      // Sửa lỗi: Cập nhật tên trường thành "TripSeats"
       requestBody = {
         "customerId": customerId,
         "isReturn": false,
         "tripSeats": [
           {
-            // SỬA LỖI: Chuyển đổi tripId thành int vì backend yêu cầu
-            "tripId": int.tryParse(trip.tripId) ?? 0,
+            "tripId": trip.id,
             "fromStationId": trip.fromStationId,
             "toStationId": trip.toStationId,
-            "seatIds": <int>[(selectedSeat?.seatId as int?) ?? 0],
+            "seatIds": <int>[selectedSeat?.id ?? 0],
           }
         ],
         "returnTripSeats": [],
@@ -90,26 +110,25 @@ class _BookingScreenState extends State<BookingScreen> {
       final selectedSeat1 = widget.bookingData.selectedFirstSeat;
       final selectedSeat2 = widget.bookingData.selectedSecondSeat;
 
-      // Sửa lỗi: Cập nhật tên trường thành "TripSeats" và "ReturnTripSeats"
       requestBody = {
         "customerId": customerId,
         "isReturn": true,
         "tripSeats": [
           {
             // SỬA LỖI: Chuyển đổi tripId thành int vì backend yêu cầu
-            "tripId": int.tryParse(transferTrip.firstTrip.tripId) ?? 0,
+            "tripId": transferTrip.firstTrip.id,
             "fromStationId": transferTrip.firstTrip.fromStationId,
             "toStationId": transferTrip.firstTrip.toStationId,
-            "seatIds": <int>[(selectedSeat2?.seatId as int?) ?? 0],
+            "seatIds": <int>[selectedSeat1?.id ?? 0],
           }
         ],
         "returnTripSeats": [
           {
-            // SỬA LỖI: Chuyển đổi tripId thành int vì backend yêu cầu
-            "tripId": int.tryParse(transferTrip.secondTrip?.tripId ?? '0') ?? 0,
+
+            "tripId": transferTrip.secondTrip?.id ?? 0,
             "fromStationId": transferTrip.secondTrip?.fromStationId,
             "toStationId": transferTrip.secondTrip?.toStationId,
-            "seatIds": <int>[(selectedSeat2?.seatId as int?) ?? 0],
+            "seatIds": <int>[selectedSeat2?.id?? 0],
           }
         ],
         "paymentMethod": "VNPay",
@@ -124,12 +143,8 @@ class _BookingScreenState extends State<BookingScreen> {
       return;
     }
 
-    // URL đã đúng
-  //  final Uri createPaymentUrl = Uri.parse('https://bobts-server-e7dxfwh7e5g9e3ad.malaysiawest-01.azurewebsites.net/api/Reservations');
 
     try {
-      // Sửa lỗi: Cấu trúc lại payload để khớp với yêu cầu của backend
-      // Bổ sung thêm customerName và customerPhone
       final finalRequestBody = {
           "customerId": requestBody['customerId'],
           "isReturn": requestBody['isReturn'],
@@ -181,9 +196,6 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // ... (các hàm khác giữ nguyên) ...
-
-  // Các hàm build widget khác giữ nguyên
   @override
   Widget build(BuildContext context) {
     final dynamic tripOrTransferTrip = widget.bookingData.tripOrTransferTrip;

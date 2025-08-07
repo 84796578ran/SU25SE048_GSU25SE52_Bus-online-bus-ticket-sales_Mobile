@@ -39,6 +39,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   jwt_decode: ^0.3.1
   flutter_rating_bar: ^4.0.0
+  signalr_netcore: ^1.4.3
   #
   shared_preferences: ^2.5.3
   flutter_dotenv: ^5.2.1

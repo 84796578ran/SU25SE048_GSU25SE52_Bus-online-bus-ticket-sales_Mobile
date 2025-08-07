@@ -1,3 +1,4 @@
+// import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/pages/commmon_pages/login_page.dart';
@@ -12,6 +13,7 @@ import 'package:mobile/pages/customer_pages/screens/search/search_result_detail.
 import 'package:mobile/services/navigation_service.dart';
 import '../models/BookingData.dart';
 import '../models/customer.dart';
+import '../models/station.dart';
 import '../models/ticket.dart';
 import '../models/trip.dart';
 import '../services/author_service.dart';
@@ -40,6 +42,10 @@ class AppRouter {
               builder: (context, state) => const HomeScreen(),
             ),
             GoRoute(
+              path: '/register',
+              builder: (context, state) => const HomeScreen(),
+            ),
+            GoRoute(
               path: '/customer/future-trips',
               builder: (BuildContext context, GoRouterState state) {
                 final data = state.extra as Map<String, dynamic>;
@@ -59,19 +65,15 @@ class AppRouter {
               path: '/customer/history/detail',
               builder: (BuildContext context, GoRouterState state) {
                 final Map<String, dynamic>? data = state.extra as Map<String, dynamic>?;
-
-                if (data == null || !data.containsKey('ticket') || !data.containsKey('customer')) {
+                if (data == null || !data.containsKey('ticket') || !data.containsKey('customerId')) {
                   return Scaffold(
                     appBar: AppBar(title: const Text('Lỗi')),
-                    body: const Center(child: Text('Hiện tại, khách hàng chưa có vé nào.')),
+                    body: const Center(child: Text('Không tìm thấy thông tin chi tiết vé.')),
                   );
                 }
-
-                // Lấy đối tượng ticket và customer từ Map
                 final ticket = data['ticket'] as Ticket;
-                final customer = data['customer'] as Customer;
-
-                return HistoryDetailScreen(ticket: ticket, customer: customer);
+                final customerId = data['customerId'] as int;
+                return HistoryDetailScreen(ticket: ticket, customerId: customerId);
               },
             ),
             GoRoute(
@@ -85,8 +87,9 @@ class AppRouter {
             GoRoute(
                 path: SearchResultScreen.path,
                 builder: (BuildContext context, GoRouterState state) {
-                  final List<dynamic>? searchResults = state.extra as List<dynamic>?;
-                  if (searchResults == null || searchResults.isEmpty) {
+                  final Map<String, dynamic> data = state.extra as Map<String, dynamic>;
+
+                  if (data == null || data.isEmpty) {
                     return Scaffold(
                       appBar: AppBar(title: const Text('Kết quả tìm kiếm')),
                       body: const Center(
@@ -94,20 +97,39 @@ class AppRouter {
                       ),
                     );
                   }
-                  return SearchResultScreen(results: searchResults);
+                  final List<dynamic> searchResults = data['results'] as List<dynamic>? ?? [];
+                  final Map<int, dynamic> stations = data['stations'] as Map<int, dynamic>? ?? {};
+                  if(searchResults.isEmpty){
+                    return Scaffold(
+                      appBar: AppBar(title: const Text('Kết quả tìm kiếm')),
+                      body: const Center(child: Text('Không có chuyến nào phù hợp.')),
+                    );
+                  }
+
+                  return SearchResultScreen(results: searchResults, stations: stations.cast<int, Station>());
+
                 }
             ),
             GoRoute(
               path: SearchResultDetailScreen.path,
               builder: (BuildContext context, GoRouterState state) {
-                final dynamic tripOrTransferTrip = state.extra;
-                if (tripOrTransferTrip == null) {
+               final Map<String, dynamic>? data =  state.extra as Map<String, dynamic>?;
+
+                if (data == null) {
                   return Scaffold(
                     appBar: AppBar(title: const Text('Lỗi')),
                     body: const Center(child: Text('Không tìm thấy chi tiết chuyến đi hoặc thông tin ghế.')),
                   );
                 }
-                return SearchResultDetailScreen(tripOrTransferTrip: tripOrTransferTrip);
+                final dynamic tripOrTransferTrip = data['tripOrTransferTrip'];
+                final Map<int, dynamic> station = data['stations'] as Map<int, dynamic>? ?? {};
+                if(tripOrTransferTrip == null){
+                  return Scaffold(
+                    appBar: AppBar(title: const Text('Lỗi')),
+                    body: const Center(child: Text('Không tìm thấy chi tiết chuyến đi hoặc thông tin ghế.')),
+                  );
+                }
+                return SearchResultDetailScreen(tripOrTransferTrip: tripOrTransferTrip, stations: station.cast<int, Station>());
               },
             ),
             GoRoute(
@@ -125,7 +147,6 @@ class AppRouter {
                 return SearchResultHintScreen(results: searchResults);
               },
             ),
-            // Cập nhật route cho BookingScreen để xử lý bất đồng bộ
             GoRoute(
               path: BookingScreen.path,
               builder: (BuildContext context, GoRouterState state) {
