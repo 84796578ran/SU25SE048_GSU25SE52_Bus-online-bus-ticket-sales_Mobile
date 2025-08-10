@@ -1,4 +1,4 @@
-// import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/pages/commmon_pages/login_page.dart';
@@ -22,6 +22,7 @@ import 'customer_pages/screens/booking/booking_screen.dart';
 import 'customer_pages/screens/history/history_detail_screen.dart';
 import 'customer_pages/screens/home/get_future_trip_result.dart';
 import 'customer_pages/screens/search/search-result-hint.dart';
+import 'customer_pages/screens/search/station_selection.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -45,18 +46,7 @@ class AppRouter {
               path: '/register',
               builder: (context, state) => const HomeScreen(),
             ),
-            GoRoute(
-              path: '/customer/future-trips',
-              builder: (BuildContext context, GoRouterState state) {
-                final data = state.extra as Map<String, dynamic>;
-                final int companyId = data['companyId'] as int;
-                final String companyName = data['companyName'] as String;
-                return FutureTripScreen(
-                  companyId: companyId,
-                  companyName: companyName,
-                );
-              },
-            ),
+
             GoRoute(
               path: '/customer/history',
               builder: (context, state) => const HistoryScreen(),
@@ -129,14 +119,15 @@ class AppRouter {
                     body: const Center(child: Text('Không tìm thấy chi tiết chuyến đi hoặc thông tin ghế.')),
                   );
                 }
+
                 return SearchResultDetailScreen(tripOrTransferTrip: tripOrTransferTrip, stations: station.cast<int, Station>());
-              },
-            ),
+                },
+              ),
             GoRoute(
               path: SearchResultHintScreen.path,
               builder: (BuildContext context, GoRouterState state) {
-                final List<dynamic>? searchResults = state.extra as List<dynamic>?;
-                if (searchResults == null || searchResults.isEmpty) {
+                final List<dynamic> data = state.extra as List<dynamic>;
+                if (data == null || data.isEmpty) {
                   return Scaffold(
                     appBar: AppBar(title: const Text('Chuyến xe gợi ý')),
                     body: const Center(
@@ -144,9 +135,37 @@ class AppRouter {
                     ),
                   );
                 }
-                return SearchResultHintScreen(results: searchResults);
+                return SearchResultHintScreen(
+                  results: data,
+                );
               },
             ),
+            GoRoute(
+              path: StationSelectionScreen.path,
+              builder: (BuildContext context, GoRouterState state) {
+                final Map<String, dynamic> data = state.extra as Map<String, dynamic>;
+                final Trip trip = data['trip'] as Trip;
+                final List<Station> stations = data['stations'] as List<Station>;
+
+                return StationSelectionScreen(
+                  trip: trip,
+                  stations: stations,
+                );
+              },
+            ),
+            GoRoute(
+              path: '/customer/future-trips',
+              builder: (BuildContext context, GoRouterState state) {
+                final data = state.extra as Map<String, dynamic>;
+                final int companyId = data['companyId'] as int;
+                final String companyName = data['companyName'] as String;
+                return FutureTripScreen(
+                  companyId: companyId,
+                  companyName: companyName,
+                );
+              },
+            ),
+
             GoRoute(
               path: BookingScreen.path,
               builder: (BuildContext context, GoRouterState state) {

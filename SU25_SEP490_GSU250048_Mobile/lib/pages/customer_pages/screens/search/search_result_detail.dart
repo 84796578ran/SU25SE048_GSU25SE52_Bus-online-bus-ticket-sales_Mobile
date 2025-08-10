@@ -59,7 +59,6 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
       });
     }
   }
-
   Future<void> _fetchSeatAvailability() async {
     setState(() {
       _isLoading = true;
@@ -471,7 +470,6 @@ class _SearchResultDetailScreenState extends State<SearchResultDetailScreen> {
       },
     );
   }
-  
 
   Widget _buildSeatLegend() {
     return Padding(

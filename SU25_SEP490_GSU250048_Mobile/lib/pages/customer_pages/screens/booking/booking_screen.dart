@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/models/TransferTrip.dart';
-import 'package:mobile/models/station.dart';
 import 'package:mobile/models/trip.dart';
 import 'package:mobile/models/seat.dart';
+import 'package:mobile/models/station.dart';
+import 'package:mobile/services/author_service.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/BookingData.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../../provider/author_provider.dart';
-import '../../../../services/author_service.dart';
 import '../payment/vnpay_webview_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -37,7 +37,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
-   getData();
+    getData();
   }
 
   void getData() async {
@@ -56,19 +56,23 @@ class _BookingScreenState extends State<BookingScreen> {
     if (stationId == null || stations == null) {
       return "N/A";
     }
+
     final station = stations[stationId];
-    if(station == null){
-      return"không tìm thấy";
+    if (station == null) {
+      return "Không tìm thấy";
     }
 
-    if(station is Station){
+    // Nếu station là Station object, trả về name
+    if (station is Station) {
       return station.name;
     }
-    if(station is String){
+
+    // Nếu station là String, trả về trực tiếp
+    if (station is String) {
       return station;
     }
 
-    return stations[stationId] ?? "Không tìm thấy";
+    return "Không tìm thấy";
   }
 
   Future<void> _handleVnPayPayment() async {
@@ -91,16 +95,18 @@ class _BookingScreenState extends State<BookingScreen> {
       final trip = tripOrTransferTrip;
       final selectedSeat = widget.bookingData.selectedFirstSeat;
 
+      // Sửa lỗi: Cập nhật tên trường thành "TripSeats"
       requestBody = {
         "customerId": customerId,
         "isReturn": false,
         "tripSeats": [
           {
+            // SỬA LỖI: Chuyển đổi tripId thành int vì backend yêu cầu
             "tripId": trip.id,
             "fromStationId": trip.fromStationId,
             "toStationId": trip.toStationId,
             "seatIds": <int>[selectedSeat?.id ?? 0],
-          }
+          },
         ],
         "returnTripSeats": [],
         "paymentMethod": "VNPay",
@@ -110,6 +116,7 @@ class _BookingScreenState extends State<BookingScreen> {
       final selectedSeat1 = widget.bookingData.selectedFirstSeat;
       final selectedSeat2 = widget.bookingData.selectedSecondSeat;
 
+      // Sửa lỗi: Cập nhật tên trường thành "TripSeats" và "ReturnTripSeats"
       requestBody = {
         "customerId": customerId,
         "isReturn": true,
@@ -120,47 +127,41 @@ class _BookingScreenState extends State<BookingScreen> {
             "fromStationId": transferTrip.firstTrip.fromStationId,
             "toStationId": transferTrip.firstTrip.toStationId,
             "seatIds": <int>[selectedSeat1?.id ?? 0],
-          }
+          },
         ],
         "returnTripSeats": [
           {
-
+            // SỬA LỖI: Chuyển đổi tripId thành int vì backend yêu cầu
             "tripId": transferTrip.secondTrip?.id ?? 0,
             "fromStationId": transferTrip.secondTrip?.fromStationId,
             "toStationId": transferTrip.secondTrip?.toStationId,
-            "seatIds": <int>[selectedSeat2?.id?? 0],
-          }
+            "seatIds": <int>[selectedSeat2?.id ?? 0],
+          },
         ],
         "paymentMethod": "VNPay",
       };
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lỗi: Không tìm thấy thông tin chuyến đi.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi: Không tìm thấy thông tin chuyến đi.')));
       setState(() {
         _isMakingPayment = false;
       });
       return;
     }
 
-
     try {
+      // Sửa lỗi: Cấu trúc lại payload để khớp với yêu cầu của backend
+      // Bổ sung thêm customerName và customerPhone
       final finalRequestBody = {
-          "customerId": requestBody['customerId'],
-          "isReturn": requestBody['isReturn'],
-          "customerName": _nameController.text, // Thêm tên khách hàng
-          "customerPhone": _phoneController.text, // Thêm số điện thoại
-          "TripSeats": requestBody['tripSeats'],
-          "ReturnTripSeats": requestBody['returnTripSeats'],
-          "paymentMethod": requestBody['paymentMethod'],
-
+        "customerId": requestBody['customerId'],
+        "isReturn": requestBody['isReturn'],
+        "customerName": _nameController.text, // Thêm tên khách hàng
+        "customerPhone": _phoneController.text, // Thêm số điện thoại
+        "TripSeats": requestBody['tripSeats'],
+        "ReturnTripSeats": requestBody['returnTripSeats'],
+        "paymentMethod": requestBody['paymentMethod'],
       };
 
-      final response = await http.post(
-        createPaymentUrl,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(finalRequestBody),
-      );
+      final response = await http.post(createPaymentUrl, headers: {'Content-Type': 'application/json'}, body: json.encode(finalRequestBody));
 
       print('Sending payment request to: $createPaymentUrl');
       print('Request body: ${json.encode(finalRequestBody)}');
@@ -169,25 +170,19 @@ class _BookingScreenState extends State<BookingScreen> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseBody = json.decode(response.body);
-        final String? vnpayUrl = responseBody['vnpayUrl'];
+        final String? vnpayUrl = responseBody['paymentUrl'];
 
         if (vnpayUrl != null && vnpayUrl.isNotEmpty) {
           print('Successfully received VNPay URL. Navigating to WebView...');
           context.push(VnPayWebViewScreen.path, extra: vnpayUrl);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Lỗi: Không nhận được URL thanh toán từ máy chủ.')),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi: Không nhận được URL thanh toán từ máy chủ.')));
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi khởi tạo thanh toán: ${response.statusCode} - ${response.body}')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi khởi tạo thanh toán: ${response.statusCode} - ${response.body}')));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi kết nối khi khởi tạo thanh toán: $e')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi kết nối khi khởi tạo thanh toán: $e')));
       print('ERROR: Lỗi kết nối khi khởi tạo thanh toán: $e');
     } finally {
       setState(() {
@@ -196,6 +191,9 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
+  // ... (các hàm khác giữ nguyên) ...
+
+  // Các hàm build widget khác giữ nguyên
   @override
   Widget build(BuildContext context) {
     final dynamic tripOrTransferTrip = widget.bookingData.tripOrTransferTrip;
@@ -204,10 +202,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final dynamic stations = widget.bookingData.stations;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Xác nhận đặt vé'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Xác nhận đặt vé'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -231,19 +226,10 @@ class _BookingScreenState extends State<BookingScreen> {
                 onPressed: _isMakingPayment ? null : _handleVnPayPayment,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 child: _isMakingPayment
-                    ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
+                    ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Text('Xác nhận và Thanh toán'),
               ),
             ),
@@ -254,10 +240,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-    );
+    return Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold));
   }
 
   Widget _buildDirectTripInfo(BuildContext context, Trip trip, Seat? selectedSeat, dynamic stations) {
@@ -268,20 +251,16 @@ class _BookingScreenState extends State<BookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Chuyến trực tiếp: ${trip.fromLocation} -> ${trip.endLocation}',
-                style: Theme.of(context).textTheme.titleLarge),
+            Text('Chuyến trực tiếp: ${trip.fromLocation} -> ${trip.endLocation}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text('Mã chuyến: ${trip.tripId}'),
+            Text('Mã chuyến: ${trip.id}'),
             Text('Ghế đã chọn: ${selectedSeat?.seatId ?? "N/A"}'),
-            if (trip.fromStationId != null)
-              Text('Trạm xuất phát: ${_getStationNameById(stations, trip.fromStationId)}'),
-            if (trip.toStationId != null)
-              Text('Trạm đến: ${_getStationNameById(stations, trip.toStationId)}'),
+            if (trip.fromStationId != null) Text('Trạm xuất phát: ${_getStationNameById(stations, trip.fromStationId)}'),
+            if (trip.toStationId != null) Text('Trạm đến: ${_getStationNameById(stations, trip.toStationId)}'),
 
             Text('Giờ khởi hành: ${DateFormat('HH:mm, dd/MM/yyyy').format(trip.timeStart)}'),
             Text('Giá vé: ${NumberFormat('#,###').format(trip.price ?? 0)} VND'),
-            if (trip.routeDescription != null && trip.routeDescription!.isNotEmpty)
-              Text('Lộ trình: ${trip.routeDescription}'),
+            if (trip.routeDescription != null && trip.routeDescription!.isNotEmpty) Text('Lộ trình: ${trip.routeDescription}'),
           ],
         ),
       ),
@@ -305,8 +284,10 @@ class _BookingScreenState extends State<BookingScreen> {
               _buildTripSegment(context, 'Chặng 2', transferTrip.secondTrip!, selectedSeat2, stations),
             ],
             const SizedBox(height: 10),
-            Text('Tổng giá: ${NumberFormat('#,###').format(totalPrice)} VND',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 18)),
+            Text(
+              'Tổng giá: ${NumberFormat('#,###').format(totalPrice)} VND',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 18),
+            ),
           ],
         ),
       ),
@@ -319,36 +300,33 @@ class _BookingScreenState extends State<BookingScreen> {
       children: [
         Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text('Mã chuyến: ${trip.tripId}'),
+        Text('Mã chuyến: ${trip.id}'),
         Text('Từ: ${trip.fromLocation} -> Đến: ${trip.endLocation}'),
 
-        if (trip.fromStationId != null)
-          Text('Trạm xuất phát: ${_getStationNameById(stations, trip.fromStationId)}'),
-        if (trip.toStationId != null)
-          Text('Trạm đến: ${_getStationNameById(stations, trip.toStationId)}'),
+        if (trip.fromStationId != null) Text('Trạm xuất phát: ${_getStationNameById(stations, trip.fromStationId)}'),
+        if (trip.toStationId != null) Text('Trạm đến: ${_getStationNameById(stations, trip.toStationId)}'),
 
         Text('Ghế đã chọn: ${selectedSeat?.seatId ?? "N/A"}'),
         Text('Giờ khởi hành: ${DateFormat('HH:mm, dd/MM/yyyy').format(trip.timeStart)}'),
         Text('Giá vé: ${NumberFormat('#,###').format(trip.price ?? 0)} VND'),
-        if (trip.routeDescription != null && trip.routeDescription!.isNotEmpty)
-          Text('Lộ trình: ${trip.routeDescription}'),
+        if (trip.routeDescription != null && trip.routeDescription!.isNotEmpty) Text('Lộ trình: ${trip.routeDescription}'),
       ],
     );
   }
 
   Widget _buildCustomerInfoForm() {
+    setState(() {});
     return Form(
       key: _formKey,
       child: Column(
         children: [
           TextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Họ và Tên',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
-              ),
-              prefixIcon: Icon(Icons.person),
+              border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+              prefixIcon: const Icon(Icons.person),
+              hintText: 'Nhập họ và tên',
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -360,12 +338,11 @@ class _BookingScreenState extends State<BookingScreen> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _phoneController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'Số điện thoại',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
-              ),
-              prefixIcon: Icon(Icons.phone),
+              border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10.0))),
+              prefixIcon: const Icon(Icons.phone),
+              hintText: 'Nhập số điện thoại',
             ),
             keyboardType: TextInputType.phone,
             validator: (value) {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../models/ticket.dart';
@@ -23,11 +24,26 @@ class TicketService {
       },
     );
 
+    if (kDebugMode) {
+      debugPrint('DEBUG: API Response status: ${response.statusCode}');
+      debugPrint('DEBUG: API Response body: ${response.body}');
+    }
+
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Ticket.fromJson(json)).toList();
+      final allTickets = data.map((json) => Ticket.fromJson(json)).toList();
+      final filteredTickets = allTickets
+          .where((ticket) => ticket.status == 0 || ticket.status == 2)
+          .toList();
+
+      if (kDebugMode) {
+        debugPrint('DEBUG: Found ${allTickets.length} tickets, filtered to ${filteredTickets.length}.');
+      }
+      return filteredTickets;
     } else {
-      print('Lỗi API: ${response.statusCode} - ${response.body}');
+      if (kDebugMode) {
+        debugPrint('Lỗi API: ${response.statusCode} - ${response.body}');
+      }
       throw Exception('Failed to load ticket history');
     }
   }
