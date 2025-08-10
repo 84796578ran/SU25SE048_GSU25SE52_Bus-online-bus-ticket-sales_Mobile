@@ -64,72 +64,79 @@ class _LoginPage extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _login(BuildContext context) async {
-    setState(() => _isLoading = true);
-    final uri = Uri.parse('${dotenv.env['API_URL']}/Customers/LoginWithPhone');
+    Future<void> _login(BuildContext context) async {
+      setState(() => _isLoading = true);
+      final uri = Uri.parse('${dotenv.env['API_URL']}/Customers/LoginWithPhone');
 
-    try {
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'phone': _phoneController.text.trim(),
-          'password': _passwordController.text.trim(),
-        }),
-      );
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final token = responseData['token'];
-        if (token == null || token is! String || token.isEmpty) {
-          throw Exception('Token không hợp lệ');
-        }
-        print('Toàn bộ body: ${response.body}');
-
-        await AuthService.saveToken(token);
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
-        await authProvider.login(token);
-        final payload = JwtDecoder.decode(token);
-        final actor = payload['actor'];
-        final role = payload['role'];
-
-        print('Actor: $actor, Role: $role');
-        if (actor == 'system' && role == 'driver') {
-          context.go('/driver/home');
-        } else {
-          context.go('/customer/home');
-        }
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Đăng nhập thất bại'),
-              content: const Text('Sai số điện thoại hoặc mật khẩu. Vui lòng thử lại.'),
-              actions: [
-                TextButton(
-                  child: const Text('Đóng'),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // đóng dialog
-                  },
-                ),
-              ],
-            );
+      try {
+        final response = await http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
           },
+          body: jsonEncode({
+            'phone': _phoneController.text.trim(),
+            'password': _passwordController.text.trim(),
+          }),
         );
-      }
-    } catch (e) {
-      print('Lỗi khi gọi API: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không thể kết nối đến máy chủ.')),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          final token = responseData['token'];
+          if (token == null || token is! String || token.isEmpty) {
+            throw Exception('Token không hợp lệ');
+          }
+          print('Toàn bộ body: ${response.body}');
 
+          await AuthService.saveToken(token);
+          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+          authProvider.updatePhone(responseData['phone']);
+          await AuthService.savePhone(responseData['phone']);
+          await AuthService.saveUserName(responseData['fullName']);
+
+          await authProvider.login(token);
+          final payload = JwtDecoder.decode(token);
+          final actor = payload['actor'];
+          final role = payload['role'];
+
+          print('Actor: $actor, Role: $role');
+          if (actor == 'system' && role == 'driver') {
+            context.go('/driver/home');
+          } else {
+            context.go('/customer/home');
+          }
+        } else {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Đăng nhập thất bại'),
+                content: const Text('Sai số điện thoại hoặc mật khẩu. Vui lòng thử lại.'),
+                actions: [
+                  TextButton(
+                    child: const Text('Đóng'),
+                    onPressed: () {
+                      Navigator.of(context).pop(); // đóng dialog
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      } catch (e) {
+        print('Lỗi khi gọi API: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không thể kết nối đến máy chủ.')),
+        );
+      } finally {
+        setState(() => _isLoading = false);
+      }
+    }
+
+    void credential(){
+
+    }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

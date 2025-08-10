@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_result_detail.dart';
+import 'package:mobile/pages/customer_pages/screens/search/station_selection.dart';
 import '../../../../../models/trip.dart';
 import '../../../../models/TransferTrip.dart';
+import '../../../../models/station.dart';
+import '../../../../services/station_service.dart';
 
 class SearchResultHintScreen extends StatelessWidget {
   static const path = '/customer/search-result-hint';
   final List<dynamic> results;
 
-  const SearchResultHintScreen({Key? key, required this.results}) : super(key: key);
+  const SearchResultHintScreen({
+    Key? key,
+    required this.results,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -100,8 +106,34 @@ class SearchResultHintScreen extends StatelessWidget {
 
   Widget _buildDirectTripCard(BuildContext context, Trip trip) {
     return InkWell(
-      onTap: () {
-        context.push(SearchResultDetailScreen.path, extra: trip);
+      onTap: () async {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(child: CircularProgressIndicator());
+          },
+        );
+
+        try {
+          final List<Station> stations = await StationService.getStationsByTripId(trip.id);
+
+          Navigator.of(context).pop();
+
+          // Điều hướng đến màn hình chọn trạm mới
+          context.push(
+            StationSelectionScreen.path,
+            extra: {
+              'trip': trip,
+              'stations': stations, // Truyền danh sách trạm đã lấy được
+            },
+          );
+        } catch (e) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -178,9 +210,12 @@ class SearchResultHintScreen extends StatelessWidget {
   Widget _buildTransferTripCard(BuildContext context, TransferTrip transferTrip) {
     double totalprice = transferTrip.firstTrip.price + (transferTrip.secondTrip?.price ?? 0.0);
     return InkWell(
-      onTap: () {
-        context.push(SearchResultDetailScreen.path, extra: transferTrip);
-      },
+       onTap: () {
+      final Map<String, dynamic> extraData = {
+        'tripOrTransferTrip': transferTrip,
+      };
+      context.push(SearchResultDetailScreen.path, extra: extraData);
+    },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         padding: const EdgeInsets.all(16.0),
