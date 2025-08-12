@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/author_provider.dart';
+import '../../provider/systemUser_provider.dart';
 import '../../services/author_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -64,21 +65,84 @@ class _LoginPage extends State<LoginPage> {
     super.dispose();
   }
 
-    Future<void> _login(BuildContext context) async {
-      setState(() => _isLoading = true);
-      final uri = Uri.parse('${dotenv.env['API_URL']}/Customers/LoginWithPhone');
+  Future<void> _login(BuildContext context) async {
+    setState(() => _isLoading = true);
 
-      try {
+    final loginInput = _phoneController.text.trim();
+    final isEmail = loginInput.contains('@');
+
+    try {
+      if (isEmail) {
+        // Nhánh 1: Đăng nhập bằng email (SystemUser)
+        final uri = Uri.parse('${dotenv.env['API_URL']}/SystemUser/login');
+
         final response = await http.post(
           uri,
           headers: {
             'Content-Type': 'application/json',
           },
           body: jsonEncode({
-            'phone': _phoneController.text.trim(),
+            'email': loginInput, // Giữ nguyên 'email' theo yêu cầu của bạn
             'password': _passwordController.text.trim(),
           }),
         );
+
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          final token = responseData['token'];
+          if (token == null || token is! String || token.isEmpty) {
+            throw Exception('Token không hợp lệ');
+          }
+
+          final systemUserProvider = Provider.of<SystemUserProvider>(context, listen: false);
+          await systemUserProvider.login(token);
+
+          context.go('/driver/home');
+
+        } else {
+          // Thử đăng nhập bằng email của Customer nếu đăng nhập SystemUser thất bại
+          final customerGmailUri = Uri.parse('${dotenv.env['API_URL']}/Customers/LoginWithGmail');
+          final customerGmailResponse = await http.post(
+            customerGmailUri,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'gmail': loginInput,
+              'password': _passwordController.text.trim(),
+            }),
+          );
+          if (customerGmailResponse.statusCode == 200) {
+            final responseData = jsonDecode(customerGmailResponse.body);
+            final token = responseData['token'];
+            if (token == null || token is! String || token.isEmpty) {
+              throw Exception('Token không hợp lệ');
+            }
+            print('Toàn bộ body: ${response.body}');
+            await AuthService.saveToken(token);
+            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            authProvider.updatePhone(responseData['phone']);
+            await AuthService.savePhone(responseData['phone']);
+            await AuthService.saveUserName(responseData['fullName']);
+            await authProvider.login(token);
+            context.go('/customer/home');
+          } else {
+            _showErrorDialog(context, 'Sai email hoặc mật khẩu. Vui lòng thử lại.');
+          }
+        }
+      } else {
+        // Nhánh 2: Đăng nhập bằng số điện thoại (Customer)
+        final uri = Uri.parse('${dotenv.env['API_URL']}/Customers/LoginWithPhone');
+
+        final response = await http.post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'phone': loginInput,
+            'password': _passwordController.text.trim(),
+          }),
+        );
+
         if (response.statusCode == 200) {
           final responseData = jsonDecode(response.body);
           final token = responseData['token'];
@@ -86,57 +150,47 @@ class _LoginPage extends State<LoginPage> {
             throw Exception('Token không hợp lệ');
           }
           print('Toàn bộ body: ${response.body}');
-
           await AuthService.saveToken(token);
           final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
           authProvider.updatePhone(responseData['phone']);
           await AuthService.savePhone(responseData['phone']);
           await AuthService.saveUserName(responseData['fullName']);
-
           await authProvider.login(token);
-          final payload = JwtDecoder.decode(token);
-          final actor = payload['actor'];
-          final role = payload['role'];
-
-          print('Actor: $actor, Role: $role');
-          if (actor == 'system' && role == 'driver') {
-            context.go('/driver/home');
-          } else {
-            context.go('/customer/home');
-          }
+          context.go('/customer/home');
         } else {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Đăng nhập thất bại'),
-                content: const Text('Sai số điện thoại hoặc mật khẩu. Vui lòng thử lại.'),
-                actions: [
-                  TextButton(
-                    child: const Text('Đóng'),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // đóng dialog
-                    },
-                  ),
-                ],
-              );
-            },
-          );
+          _showErrorDialog(context, 'Sai số điện thoại hoặc mật khẩu. Vui lòng thử lại.');
         }
-      } catch (e) {
-        print('Lỗi khi gọi API: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không thể kết nối đến máy chủ.')),
-        );
-      } finally {
-        setState(() => _isLoading = false);
       }
+    } catch (e) {
+      print('Lỗi khi gọi API: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kết nối mạng bị lỗi. Vui lòng thử lại sau !!!')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
+  }
 
-    void credential(){
-
-    }
+// Hàm trợ giúp để hiển thị dialog lỗi
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Đăng nhập thất bại'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: const Text('Đóng'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,7 +224,7 @@ class _LoginPage extends State<LoginPage> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    labelText: 'Số điện thoại',
+                    labelText: 'Gmail hoặc Số điện thoại',
                     prefixIcon: const Icon(Icons.person),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
                   ),

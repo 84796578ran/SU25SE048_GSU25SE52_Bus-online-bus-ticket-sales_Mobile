@@ -22,7 +22,8 @@ import 'customer_pages/screens/booking/booking_screen.dart';
 import 'customer_pages/screens/history/history_detail_screen.dart';
 import 'customer_pages/screens/home/get_future_trip_result.dart';
 import 'customer_pages/screens/search/search-result-hint.dart';
-import 'customer_pages/screens/search/station_selection.dart';
+import 'driver_pages/driver_page.dart';
+import 'driver_pages/home/home_page_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -141,22 +142,9 @@ class AppRouter {
               },
             ),
             GoRoute(
-              path: StationSelectionScreen.path,
-              builder: (BuildContext context, GoRouterState state) {
-                final Map<String, dynamic> data = state.extra as Map<String, dynamic>;
-                final Trip trip = data['trip'] as Trip;
-                final List<Station> stations = data['stations'] as List<Station>;
-
-                return StationSelectionScreen(
-                  trip: trip,
-                  stations: stations,
-                );
-              },
-            ),
-            GoRoute(
               path: '/customer/future-trips',
               builder: (BuildContext context, GoRouterState state) {
-                final data = state.extra as Map<String, dynamic>;
+                final Map<String, dynamic> data = state.extra as Map<String, dynamic>;
                 final int companyId = data['companyId'] as int;
                 final String companyName = data['companyName'] as String;
                 return FutureTripScreen(
@@ -231,6 +219,21 @@ class AppRouter {
             ),
           ]
       ),
+      ShellRoute(
+          builder: (context, state, child) => DriverHomePage(child: child), // Đổi tên widget phù hợp
+          routes: [
+            GoRoute(
+              path: '/driver/home',
+              builder: (context, state) => const DriverHomeScreen(), // Đổi tên widget phù hợp
+            ),
+            // Thêm các GoRoute khác của tài xế vào đây
+            // GoRoute(
+            //   path: '/driver/schedule',
+            //   builder: (context, state) => const DriverScheduleScreen(),
+            // ),
+          ]
+      ),
+      // --- Kết thúc ShellRoute mới ---
     ],
     errorBuilder: (BuildContext context, GoRouterState state) {
       return Scaffold(

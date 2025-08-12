@@ -65,6 +65,7 @@ class SearchResultScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 7),
                       Text('Giờ đi: ${DateFormat('HH:mm').format(item.timeStart)}', style: const TextStyle(fontSize: 20)),
+                      Text('Giờ đến: ${DateFormat('HH:mm').format(item.timeEnd)}', style: const TextStyle(fontSize: 20)),
                       const SizedBox(height: 7),
                       Text('Giá: ${NumberFormat('#,###').format(item.price ?? 0)} VND', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red)),
                     ],
@@ -73,7 +74,7 @@ class SearchResultScreen extends StatelessWidget {
               ),
             );
           } else if (item is TransferTrip) {
-            return InkWell( // Đảm bảo toàn bộ Card có thể nhấn
+            return InkWell(
               onTap: () {
                 context.push(SearchResultDetailScreen.path, extra: {'tripOrTransferTrip': item, 'stations': stations});
               },
@@ -95,6 +96,7 @@ class SearchResultScreen extends StatelessWidget {
                         Text('Chuyến đi thứ hai:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
                         Text('  Từ: ${item.secondTrip!.fromLocation} Đến: ${item.secondTrip!.endLocation}', style: const TextStyle(fontSize: 20)),
                         Text('  Giờ đi: ${DateFormat('HH:mm').format(item.secondTrip!.timeStart)}', style: const TextStyle(fontSize: 20)),
+
                       ],
                       const SizedBox(height: 12),
                       Text(

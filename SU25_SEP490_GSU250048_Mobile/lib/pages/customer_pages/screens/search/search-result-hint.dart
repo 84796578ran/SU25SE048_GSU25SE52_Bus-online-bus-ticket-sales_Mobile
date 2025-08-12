@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile/pages/customer_pages/screens/search/search_result_detail.dart';
-import 'package:mobile/pages/customer_pages/screens/search/station_selection.dart';
 import '../../../../../models/trip.dart';
 import '../../../../models/TransferTrip.dart';
 import '../../../../models/station.dart';
@@ -114,20 +113,21 @@ class SearchResultHintScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           },
         );
-
         try {
-          final List<Station> stations = await StationService.getStationsByTripId(trip.id);
-
+          // Lấy danh sách các trạm cho chuyến đi đã chọn
+          // final List<Station> stationsList = await StationService.getStationsByTripId(trip.id);
+          // final Map<int, Station> stationsMap = {
+          //   for (var station in stationsList) station.id!: station,
+          // };
           Navigator.of(context).pop();
-
-          // Điều hướng đến màn hình chọn trạm mới
           context.push(
-            StationSelectionScreen.path,
+            SearchResultDetailScreen.path,
             extra: {
-              'trip': trip,
-              'stations': stations, // Truyền danh sách trạm đã lấy được
+              'tripOrTransferTrip': trip,
+              // 'stations': stationsMap,
             },
           );
+          debugPrint('Chuyến đi đã được chọn: ${trip.id}');
         } catch (e) {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
