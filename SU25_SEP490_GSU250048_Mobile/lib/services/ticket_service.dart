@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../models/stationPassengerCount.dart';
@@ -24,31 +23,21 @@ class TicketService {
         'Content-Type': 'application/json',
       },
     );
-
-    if (kDebugMode) {
-      debugPrint('DEBUG: API Response status: ${response.statusCode}');
-      debugPrint('DEBUG: API Response body: ${response.body}');
-    }
-
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      final allTickets = data.map((json) => Ticket.fromJson(json)).toList();
-      final filteredTickets = allTickets
-          .where((ticket) => ticket.status == 0 || ticket.status == 2)
-          .toList();
+      final filteredData = data.where((json) {
+        final status = json['status'];
+        return status == 0 || status == 2;
+      }).toList();
 
-      if (kDebugMode) {
-        debugPrint('DEBUG: Found ${allTickets.length} tickets, filtered to ${filteredTickets.length}.');
-      }
-      return filteredTickets;
+      final List<Ticket> tickets =  filteredData.map((json) => Ticket.fromJson(json)).toList();
+      tickets.sort((a, b) => b.createDate.compareTo(a.createDate));
+      return tickets;
     } else {
-      if (kDebugMode) {
-        debugPrint('Lỗi API: ${response.statusCode} - ${response.body}');
-      }
+      print('Lỗi API: ${response.statusCode} - ${response.body}');
       throw Exception('Failed to load ticket history');
     }
   }
-  // fetch passenger
   static Future<List<StationPassengerCount>> fetchStationPassengerCount(int tripId) async {
     final uri = Uri.parse('$_baseUrl/Ticket/trip/$tripId/station-passenger-count');
     try {

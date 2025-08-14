@@ -28,28 +28,6 @@ class StationService {
     }
   }
 
-
-  static Future<List<Station>> getStationsByTripId(int tripId) async {
-    final uri = Uri.parse('$_baseUrl/Station/trip/$tripId/stations');
-    print('DEBUG: Đang gọi API lấy điểm đón/trả theo Trip ID: $uri');
-    try {
-      final response = await http.get(uri);
-      print('DEBUG: Mã trạng thái phản hồi: ${response.statusCode}');
-      print('DEBUG: Nội dung phản hồi: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body);
-        return jsonList.map((json) => Station.fromJson(json)).toList();
-      } else {
-        print('Failed to load stations: ${response.statusCode} - ${response.body}');
-        throw Exception('Failed to load stations for trip ID $tripId: ${response.body}');
-      }
-    } catch (e) {
-      print('Error calling API to get stations for trip ID: $e');
-      throw Exception('Failed to connect to server to get stations.');
-    }
-  }
-
   static Future<List<Station>> getAllStations() async {
     final uri = Uri.parse('https://bobts-server-e7dxfwh7e5g9e3ad.malaysiawest-01.azurewebsites.net/api/Station?All=true');
     print('DEBUG: Đang gọi API lấy tất cả điểm đón/trả: $uri');

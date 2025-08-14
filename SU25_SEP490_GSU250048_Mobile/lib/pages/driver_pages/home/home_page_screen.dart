@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/services/ticket_service.dart';
 import '../../../models/stationPassengerCount.dart';
+import 'home_passenger_detail_screen.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   static const path = '/driver/home';
@@ -49,21 +50,36 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     leading: const Icon(Icons.location_on, color: Colors.deepOrange),
-                    title: Text(
-                      stationCount.stationName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          stationCount.stationName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Số hành khách: ${stationCount.passengerCount}',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14.0,
+                          ),
+                        ),
+                      ],
                     ),
-                    trailing: Text(
-                      'Số hành khách: ${stationCount.passengerCount}',
-                      style: const TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.0,
-                      ),
-                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      // Điều hướng đến màn hình chi tiết và truyền toàn bộ đối tượng stationCount
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (ctx) => HomePassengerDetailScreen(stationData: stationCount),
+                        ),
+                      );
+                    },
                   ),
                 );
               },

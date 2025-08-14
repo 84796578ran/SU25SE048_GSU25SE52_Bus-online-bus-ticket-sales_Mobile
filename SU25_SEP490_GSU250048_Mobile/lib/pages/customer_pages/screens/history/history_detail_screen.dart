@@ -19,21 +19,25 @@ class HistoryDetailScreen extends StatefulWidget {
 class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
   bool hasRated = false;
 
+
   String _statusToString(int? status) {
     switch (status) {
-      case 1:
-        return 'Chờ thanh toán';
-      case 2:
+      case 0:
         return 'Đã thanh toán';
-      case 3:
+      case 1:
+        return 'Đã sử dụng';
+      case 2:
         return 'Đã hủy';
+      case 3:
+        return 'Đang chờ xử lý';
       case 4:
-        return 'Hoàn tất';
+        return 'Chưa thanh toán';
+      case 5:
+        return 'Đã hoàn tiền';
       default:
         return 'Không xác định';
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

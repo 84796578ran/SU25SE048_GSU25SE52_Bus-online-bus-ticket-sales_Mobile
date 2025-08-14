@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mobile/services/system_user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -93,8 +94,10 @@ class _LoginPage extends State<LoginPage> {
           if (token == null || token is! String || token.isEmpty) {
             throw Exception('Token không hợp lệ');
           }
-
+          await SystemUserService.saveToken(token);
           final systemUserProvider = Provider.of<SystemUserProvider>(context, listen: false);
+          await SystemUserService.saveUserName('system_user_name');
+          await SystemUserService.saveRole('system_user_role');
           await systemUserProvider.login(token);
 
           context.go('/driver/home');

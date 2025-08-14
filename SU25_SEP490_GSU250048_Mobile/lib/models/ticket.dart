@@ -1,9 +1,9 @@
 class Ticket {
-  final int id; // Đã thêm trường id có thể null
+  final int id;
   final String ticketId;
   final String? customerId;
   final String? customerName;
-  final int seatId;
+  final String? seatId;
   final double price;
   final DateTime createDate;
   final String? fromTripStation;
@@ -29,7 +29,7 @@ class Ticket {
       ticketId: json['ticketId'] as String,
       customerId: json['customerId']?.toString(),
       customerName: json['customerName']?.toString(),
-      seatId: json['seatId'] as int,
+      seatId: json['seatId']?.toString(),
       price: (json['price'] as num).toDouble(),
       createDate: DateTime.parse(json['createDate'] as String),
       fromTripStation: json['fromTripStation'] as String?,

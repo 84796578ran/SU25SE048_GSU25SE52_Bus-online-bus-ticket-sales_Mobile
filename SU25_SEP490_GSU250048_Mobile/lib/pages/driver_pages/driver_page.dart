@@ -23,7 +23,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
   static final List<Destination> allDestinations = <Destination>[
     Destination('Trang chủ', Icons.home_filled, Icons.home, Colors.orange, Colors.white, '/driver/home'),
    // Destination('Lịch trình', Icons.schedule_outlined, Icons.schedule, Colors.orange, Colors.white, '/driver/schedule'),
-    Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.orange, Colors.white, '/profile'),
+    Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.orange, Colors.white, '/driver/profile'),
   ];
 
   @override

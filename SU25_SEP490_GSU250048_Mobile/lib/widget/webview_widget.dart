@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -9,11 +8,7 @@ class VnPayWebViewScreen extends StatefulWidget {
   final String initialUrl;
   final Function(bool isSuccess, String? responseCode)? onPaymentResult;
 
-  const VnPayWebViewScreen({
-    Key? key,
-    required this.initialUrl,
-    this.onPaymentResult,
-  }) : super(key: key);
+  const VnPayWebViewScreen({Key? key, required this.initialUrl, this.onPaymentResult}) : super(key: key);
 
   @override
   State<VnPayWebViewScreen> createState() => _VnPayWebViewScreenState();
@@ -31,16 +26,12 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
     // #docregion platform_features
     late final PlatformWebViewControllerCreationParams params;
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
-      params = WebKitWebViewControllerCreationParams(
-        allowsInlineMediaPlayback: true,
-        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
-      );
+      params = WebKitWebViewControllerCreationParams(allowsInlineMediaPlayback: true, mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{});
     } else {
       params = const PlatformWebViewControllerCreationParams();
     }
 
-    final WebViewController controller =
-    WebViewController.fromPlatformCreationParams(params);
+    final WebViewController controller = WebViewController.fromPlatformCreationParams(params);
 
     controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -100,8 +91,7 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
 
     if (controller.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(true);
-      (controller.platform as AndroidWebViewController)
-          .setTextZoom(100);
+      (controller.platform as AndroidWebViewController).setTextZoom(100);
     }
     _controller = controller;
   }
@@ -144,10 +134,7 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading)
-            const Center(
-              child: CircularProgressIndicator(),
-            ),
+          if (_isLoading) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );

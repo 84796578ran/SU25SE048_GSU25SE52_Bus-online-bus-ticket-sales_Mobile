@@ -38,12 +38,7 @@ class TripServices {
     print('DEBUG: Gọi API lấy chuyến tương lai theo công ty: $uri');
 
     try {
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await http.get(uri, headers: {'Authorization': 'Bearer $token'});
 
       print('DEBUG: Trạng thái phản hồi: ${response.statusCode}');
       print('DEBUG: Nội dung phản hồi: ${response.body}');
@@ -75,12 +70,7 @@ class TripServices {
     print('DEBUG: Đang gọi API tìm chuyến $requestType: $uri');
 
     try {
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await http.get(uri, headers: {'Authorization': 'Bearer $token'});
 
       print('DEBUG: Mã trạng thái phản hồi tìm chuyến $requestType: ${response.statusCode}');
       print('DEBUG: Nội dung phản hồi tìm chuyến $requestType: ${response.body}');
@@ -115,18 +105,10 @@ class TripServices {
       'TransferTripsPagination.All': 'true',
       'TripleTripsPagination.All': 'true',
     };
-    return _performApiCall(
-      endpoint: '/Trip/mobile-search',
-      queryParams: fullQueryParams,
-      requestType: 'chặt chẽ',
-    );
+    return _performApiCall(endpoint: '/Trip/mobile-search', queryParams: fullQueryParams, requestType: 'chặt chẽ');
   }
 
-  static Future<List<dynamic>> searchTripsLoose({
-    required int fromLocationId,
-    required int toLocationId,
-    required DateTime date,
-  }) async {
+  static Future<List<dynamic>> searchTripsLoose({required int fromLocationId, required int toLocationId, required DateTime date}) async {
     final Map<String, String> looseQueryParams = {
       'FromLocationId': fromLocationId.toString(),
       'ToLocationId': toLocationId.toString(),
@@ -134,11 +116,7 @@ class TripServices {
       'DirectTripsPagination.All': 'true',
       'TransferTripsPagination.All': 'true',
     };
-    return _performApiCall(
-      endpoint: '/Trip/search-location',
-      queryParams: looseQueryParams,
-      requestType: 'nới lỏng',
-    );
+    return _performApiCall(endpoint: '/Trip/search-location', queryParams: looseQueryParams, requestType: 'nới lỏng');
   }
 
   static Future<List<dynamic>> searchOneWayTrip({
@@ -187,28 +165,21 @@ class TripServices {
     print('DEBUG: Đang gọi API tìm chuyến khứ hồi: $uri');
 
     try {
-      final response = await http.get(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await http.get(uri, headers: {'Authorization': 'Bearer $token'});
 
       print('DEBUG: Mã trạng thái phản hồi tìm chuyến khứ hồi: ${response.statusCode}');
-      print('DEBUG: Nội dung phản hồi tìm chuyến khứ hồi: ${response.body}');
+      print('DEBUG: Nội dung phản hồi tìm chuyến khứ hồi: ${response.body.toString()}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedJson = jsonDecode(response.body);
         return RoundTripResult.fromJson(decodedJson);
       } else {
         print('ERROR: Lỗi khi tìm chuyến khứ hồi: ${response.statusCode} - ${response.body}');
-        throw Exception(
-            'Không tìm được chuyến xe khứ hồi. Lỗi: ${response.statusCode} ${response.body}');
+        throw Exception('Không tìm được chuyến xe khứ hồi. Lỗi: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
       print('ERROR: Lỗi kết nối khi tìm chuyến khứ hồi: $e');
       throw Exception('Không thể kết nối đến máy chủ để tìm chuyến khứ hồi. Vui lòng thử lại. Chi tiết: $e');
     }
   }
-
 }

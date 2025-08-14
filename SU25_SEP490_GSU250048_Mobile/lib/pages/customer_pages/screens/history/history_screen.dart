@@ -18,6 +18,25 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   late Future<List<Ticket>> _ticketHistoryFuture;
 
+
+  String _statusToString(int? status) {
+    switch (status) {
+      case 0:
+        return 'Đã thanh toán';
+      case 1:
+        return 'Đã sử dụng';
+      case 2:
+        return 'Đã hủy';
+      case 3:
+        return 'Đang chờ xử lý';
+      case 4:
+        return 'Chưa thanh toán';
+      case 5:
+        return 'Đã hoàn tiền';
+      default:
+        return 'Không xác định';
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -49,7 +68,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final currentCustomer = authProvider.customerId; // Đã lấy customer từ provider
+    final currentCustomer = authProvider.customerId;
     print('DEBUG: Giá trị của currentCustomer là: $currentCustomer');
     return Scaffold(
       appBar: AppBar(title: const Text('Lịch sử đặt vé')),
@@ -105,6 +124,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           const SizedBox(height: 6),
                           Text('Từ trạm: ${ticket.fromTripStation ?? '---'}'),
                           Text('Đến trạm: ${ticket.toTripStation ?? '---'}'),
+                      Text(
+                        'Trạng thái: ${_statusToString(ticket.status)}',
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
                         ],
                       ),
                     ),

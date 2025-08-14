@@ -70,6 +70,7 @@ class _FutureTripScreenState extends State<FutureTripScreen> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(30),
                       onTap: () {
+
                         context.push(
                           SearchResultDetailScreen.path,
                           extra: trip,

@@ -1,6 +1,6 @@
-
 import 'dart:io'; // Import này cần cho nền tảng di động
 import 'dart:async'; // Import cho Timer
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -140,7 +140,6 @@ class _VnPayWebViewScreenState extends State<VnPayWebViewScreen> {
   }
 
   void _handleVnPayCallback(String url) {
-    debugPrint('Full callback URL nhận được: $url');
     if (_paymentCompleted) return; // Tránh gọi callback nhiều lần
 
     _paymentCompleted = true;
