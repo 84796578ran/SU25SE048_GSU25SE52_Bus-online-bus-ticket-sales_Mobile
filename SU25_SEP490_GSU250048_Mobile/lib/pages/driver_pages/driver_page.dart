@@ -22,7 +22,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
   // Danh sách các điểm đến của tài xế
   static final List<Destination> allDestinations = <Destination>[
     Destination('Trang chủ', Icons.home_filled, Icons.home, Colors.orange, Colors.white, '/driver/home'),
-   // Destination('Lịch trình', Icons.schedule_outlined, Icons.schedule, Colors.orange, Colors.white, '/driver/schedule'),
+    Destination('Quét QR', Icons.qr_code_scanner_outlined, Icons.qr_code_scanner, Colors.orange, Colors.white, '/driver/qr'),
     Destination('Hồ sơ', Icons.person_outlined, Icons.person, Colors.orange, Colors.white, '/driver/profile'),
   ];
 

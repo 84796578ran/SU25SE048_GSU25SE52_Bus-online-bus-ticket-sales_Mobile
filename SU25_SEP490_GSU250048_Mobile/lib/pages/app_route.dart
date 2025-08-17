@@ -26,6 +26,7 @@ import 'driver_pages/driver_page.dart';
 import 'driver_pages/home/home_page_screen.dart';
 import 'driver_pages/home/home_passenger_detail_screen.dart';
 import 'driver_pages/profile/profile_screen.dart';
+import 'driver_pages/qrScanner/qrScanner.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -67,13 +68,11 @@ class AppRouter {
             path: SearchResultScreen.path,
             builder: (BuildContext context, GoRouterState state) {
               final dynamic extra = state.extra;
-
               bool isRoundTrip = false;
               Map<int, Station> stations = {};
               List<dynamic>? departResults;
               List<dynamic>? returnResults;
               List<dynamic> results = [];
-
               if (extra is Map<String, dynamic>) {
                 isRoundTrip = extra['isRoundTrip'] as bool? ?? false;
                 final Map<int, dynamic> stationsRaw = extra['stations'] as Map<int, dynamic>? ?? {};
@@ -310,6 +309,19 @@ class AppRouter {
                   );
                 }
                 return HomePassengerDetailScreen(stationData: stationData);
+              },
+            ),
+            GoRoute(
+              path: '/driver/qr',
+              builder: (context, state) {
+                final data = state.extra as Map<String, dynamic>?;
+                final ticketId = data != null ? data['ticketId']?.toString() : null;
+                final tripId = data != null && data['tripId'] != null ? int.tryParse(data['tripId'].toString()) : null;
+
+                return DriverQRScannerPage(
+                  ticketId: ticketId,
+                  tripId: tripId,
+                );
               },
             ),
           ],

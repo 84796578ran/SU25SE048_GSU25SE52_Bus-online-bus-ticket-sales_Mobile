@@ -74,7 +74,7 @@ class _LoginPage extends State<LoginPage> {
 
     try {
       if (isEmail) {
-        // Nhánh 1: Đăng nhập bằng email (SystemUser)
+
         final uri = Uri.parse('${dotenv.env['API_URL']}/SystemUser/login');
 
         final response = await http.post(
@@ -99,7 +99,10 @@ class _LoginPage extends State<LoginPage> {
           await SystemUserService.saveUserName('system_user_name');
           await SystemUserService.saveRole('system_user_role');
           await systemUserProvider.login(token);
-
+          print('SystemUserId từ provider: ${systemUserProvider.systemUserId}');
+          // Nếu muốn in trực tiếp từ SharedPreferences (do saveToken đã lưu sẵn)
+          final savedId = await SystemUserService.getSystemUserId();
+          print('SystemUserId từ SharedPreferences: $savedId');
           context.go('/driver/home');
 
         } else {

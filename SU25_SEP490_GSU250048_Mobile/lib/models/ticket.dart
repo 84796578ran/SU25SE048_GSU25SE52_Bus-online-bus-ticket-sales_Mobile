@@ -1,55 +1,74 @@
 class Ticket {
   final int id;
   final String ticketId;
-  final String? customerId;
-  final String? customerName;
-  final String? seatId;
+  final int reservationId;
+  final String customerName;
+  final String seatId;
   final double price;
   final DateTime createDate;
-  final String? fromTripStation;
-  final String? toTripStation;
+  final String fromTripStation;
+  final String toTripStation;
+  final DateTime timeStart;
+  final DateTime timeEnd;
+  final String qrCodeUrl;
+  final String companyName;
   final int status;
-
+  final int? tripId;
   Ticket({
-    required this.id, // Đã thêm id vào constructor, có thể null
+    required this.id,
     required this.ticketId,
-    required this.customerId,
+    required this.reservationId,
     required this.customerName,
     required this.seatId,
     required this.price,
     required this.createDate,
-    this.fromTripStation,
-    this.toTripStation,
+    required this.fromTripStation,
+    required this.toTripStation,
+    required this.timeStart,
+    required this.timeEnd,
+    required this.qrCodeUrl,
+    required this.companyName,
     required this.status,
+    required this.tripId,
   });
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
-      id: json['id'] as int, // Đã thêm id và ép kiểu thành int?
+      id: json['id'] as int,
       ticketId: json['ticketId'] as String,
-      customerId: json['customerId']?.toString(),
-      customerName: json['customerName']?.toString(),
-      seatId: json['seatId']?.toString(),
+      reservationId: json['reservationId'] as int,
+      customerName: json['customerName'] as String,
+      seatId: json['seatId'] as String,
       price: (json['price'] as num).toDouble(),
       createDate: DateTime.parse(json['createDate'] as String),
-      fromTripStation: json['fromTripStation'] as String?,
-      toTripStation: json['toTripStation'] as String?,
+      fromTripStation: json['fromTripStation'] as String,
+      toTripStation: json['toTripStation'] as String,
+      timeStart: DateTime.parse(json['timeStart'] as String),
+      timeEnd: DateTime.parse(json['timeEnd'] as String),
+      qrCodeUrl: json['qrCodeUrl'] as String,
+      companyName: json['companyName'] as String,
       status: json['status'] as int,
+      tripId: json['tripId'] as int?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id, // Đã thêm id vào đây
+      'id': id,
       'ticketId': ticketId,
-      'customerId': customerId,
+      'reservationId': reservationId,
       'customerName': customerName,
       'seatId': seatId,
       'price': price,
       'createDate': createDate.toIso8601String(),
       'fromTripStation': fromTripStation,
       'toTripStation': toTripStation,
+      'timeStart': timeStart.toIso8601String(),
+      'timeEnd': timeEnd.toIso8601String(),
+      'qrCodeUrl': qrCodeUrl,
+      'companyName': companyName,
       'status': status,
+      'tripId': tripId,
     };
   }
 }

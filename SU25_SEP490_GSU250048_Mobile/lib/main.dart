@@ -4,13 +4,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mobile/pages/app_route.dart';
 import 'package:mobile/provider/author_provider.dart';
 import 'package:mobile/provider/systemUser_provider.dart';
+import 'package:mobile/provider/trip_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:mobile/services/navigation_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //HttpOverrides.global = MyHttpOverride();
   await dotenv.load(fileName: ".env.prod");
   await Firebase.initializeApp();
   runApp(
@@ -23,6 +23,7 @@ Future<void> main() async {
             return authProvider;
           }
           ),
+
           ChangeNotifierProvider(
               create: (_) {
                 final systemUserProvider = SystemUserProvider();
@@ -30,6 +31,8 @@ Future<void> main() async {
                 return systemUserProvider;
               }
           ),
+          ChangeNotifierProvider(create: (_)=> TripProvider(),
+          child: MyApp()),
           //ChangeNotifierProvider(create: (_) = > BookingProvider()),
         ],
         child: const MyApp(),
@@ -54,11 +57,5 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-// class MyHttpOverride extends HttpOverrides {
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context) {
-//     return super.createHttpClient(context)
-//       ..badCertificateCallback = (cert, host, port) => true;
-//   }
-// }
+
 

@@ -1,5 +1,6 @@
 // lib/services/system_user_service.dart
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,21 +19,31 @@ class SystemUserService {
     await prefs.setString(_tokenKey, token);
     try {
       Map<String, dynamic> payload = Jwt.parseJwt(token);
-      final idStr = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+      final idStr = payload["nameid"];
       if (idStr != null) {
         final id = int.tryParse(idStr.toString());
         if (id != null) {
           await prefs.setInt(_systemUserIdKey, id);
+          print("SystemUserId lưu vào SharedPreferences: $id");
         }
+      } else {
+        debugPrint("⚠️ Token không có field 'nameid'");
       }
     } catch (e) {
       print('Lỗi khi decode token: $e');
     }
   }
 
+
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
+  }
+
+  static Future<void> saveSystemUserId(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_systemUserIdKey, id);
+    print("✅ SystemUserId được lưu thủ công vào SharedPreferences: $id");
   }
 
   static Future<int?> getSystemUserId() async {
@@ -95,14 +106,5 @@ class SystemUserService {
     }
   }
 
-// Tùy chọn: Thêm phương thức để lấy thông tin SystemUser từ API
-// static Future<SystemUser?> getSystemUser(int systemUserId) async {
-// Viết logic gọi API để lấy thông tin SystemUser
-// final uri = Uri.parse('$_baseUrl/SystemUser/$systemUserId');
-// final response = await http.get(uri);
-// if (response.statusCode == 200) {
-//   return SystemUser.fromJson(json.decode(response.body));
-// }
-//   return null;
-// }
+
 }

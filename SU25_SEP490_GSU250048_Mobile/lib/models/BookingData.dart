@@ -39,7 +39,6 @@ class BookingData {
   final dynamic returnTripOrTransferTrip;
   final List<Seat> returnSelectedFirstSeats;
   final List<Seat> returnSelectedSecondSeats;
-
   final bool isRoundTrip;
   final Map<int, Station> stations;
 
