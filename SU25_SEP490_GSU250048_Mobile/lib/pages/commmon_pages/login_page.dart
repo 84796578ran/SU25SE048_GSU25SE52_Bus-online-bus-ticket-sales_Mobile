@@ -32,6 +32,9 @@ class _LoginPage extends State<LoginPage> {
     if (kDebugMode) {
       _phoneController.text = '0938080462';
       _passwordController.text = '18012003';
+
+      // _phoneController.text = 'driver1@gmail.com';
+      // _passwordController.text = '111111';
     }
     _checkIfLoggedIn();
   }
@@ -58,7 +61,6 @@ class _LoginPage extends State<LoginPage> {
     }
   }
 
-
   @override
   void dispose() {
     _phoneController.dispose();
@@ -74,14 +76,12 @@ class _LoginPage extends State<LoginPage> {
 
     try {
       if (isEmail) {
-
+        // Nhánh 1: Đăng nhập bằng email (SystemUser)
         final uri = Uri.parse('${dotenv.env['API_URL']}/SystemUser/login');
 
         final response = await http.post(
           uri,
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'email': loginInput, // Giữ nguyên 'email' theo yêu cầu của bạn
             'password': _passwordController.text.trim(),
@@ -99,22 +99,15 @@ class _LoginPage extends State<LoginPage> {
           await SystemUserService.saveUserName('system_user_name');
           await SystemUserService.saveRole('system_user_role');
           await systemUserProvider.login(token);
-          print('SystemUserId từ provider: ${systemUserProvider.systemUserId}');
-          // Nếu muốn in trực tiếp từ SharedPreferences (do saveToken đã lưu sẵn)
-          final savedId = await SystemUserService.getSystemUserId();
-          print('SystemUserId từ SharedPreferences: $savedId');
-          context.go('/driver/home');
 
+          context.go('/driver/home');
         } else {
           // Thử đăng nhập bằng email của Customer nếu đăng nhập SystemUser thất bại
           final customerGmailUri = Uri.parse('${dotenv.env['API_URL']}/Customers/LoginWithGmail');
           final customerGmailResponse = await http.post(
             customerGmailUri,
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'gmail': loginInput,
-              'password': _passwordController.text.trim(),
-            }),
+            body: jsonEncode({'gmail': loginInput, 'password': _passwordController.text.trim()}),
           );
           if (customerGmailResponse.statusCode == 200) {
             final responseData = jsonDecode(customerGmailResponse.body);
@@ -140,13 +133,8 @@ class _LoginPage extends State<LoginPage> {
 
         final response = await http.post(
           uri,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode({
-            'phone': loginInput,
-            'password': _passwordController.text.trim(),
-          }),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'phone': loginInput, 'password': _passwordController.text.trim()}),
         );
 
         if (response.statusCode == 200) {
@@ -169,15 +157,13 @@ class _LoginPage extends State<LoginPage> {
       }
     } catch (e) {
       print('Lỗi khi gọi API: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kết nối mạng bị lỗi. Vui lòng thử lại sau !!!')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kết nối mạng bị lỗi. Vui lòng thử lại sau !!!')));
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-// Hàm trợ giúp để hiển thị dialog lỗi
+  // Hàm trợ giúp để hiển thị dialog lỗi
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
@@ -197,33 +183,25 @@ class _LoginPage extends State<LoginPage> {
       },
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView( // 👈 Thêm dòng này
+        child: SingleChildScrollView(
+          // 👈 Thêm dòng này
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 80, 24, 30),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween, // 👈 nên bỏ dòng này (giải thích ở dưới)
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Image.asset('assets/Logo.png', width: 170, height: 170),
-                ),
+                Center(child: Image.asset('assets/Logo.png', width: 170, height: 170)),
                 const SizedBox(height: 20),
+                const Center(child: Text('Chào mừng bạn đến với', style: TextStyle(fontSize: 28))),
                 const Center(
-                  child: Text(
-                    'Chào mừng bạn đến với',
-                    style: TextStyle(fontSize: 28),
-                  ),
-                ),
-                const Center(
-                  child: Text(
-                    'XE TIỆN ÍCH',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
+                  child: Text('XE TIỆN ÍCH', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 30),
                 TextField(
@@ -248,10 +226,7 @@ class _LoginPage extends State<LoginPage> {
                 const SizedBox(height: 16),
                 const Align(
                   alignment: Alignment.center,
-                  child: Text(
-                    'Quên mật khẩu?',
-                    style: TextStyle(color: Colors.blue, fontSize: 16),
-                  ),
+                  child: Text('Quên mật khẩu?', style: TextStyle(color: Colors.blue, fontSize: 16)),
                 ),
                 const SizedBox(height: 30),
                 SizedBox(
@@ -265,10 +240,7 @@ class _LoginPage extends State<LoginPage> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                      'Đăng nhập',
-                      style: TextStyle(fontSize: 22, color: Colors.white),
-                    ),
+                        : const Text('Đăng nhập', style: TextStyle(fontSize: 22, color: Colors.white)),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -287,5 +259,4 @@ class _LoginPage extends State<LoginPage> {
       ),
     );
   }
-
 }

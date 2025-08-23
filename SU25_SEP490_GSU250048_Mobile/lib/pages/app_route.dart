@@ -68,11 +68,13 @@ class AppRouter {
             path: SearchResultScreen.path,
             builder: (BuildContext context, GoRouterState state) {
               final dynamic extra = state.extra;
+
               bool isRoundTrip = false;
               Map<int, Station> stations = {};
               List<dynamic>? departResults;
               List<dynamic>? returnResults;
               List<dynamic> results = [];
+
               if (extra is Map<String, dynamic>) {
                 isRoundTrip = extra['isRoundTrip'] as bool? ?? false;
                 final Map<int, dynamic> stationsRaw = extra['stations'] as Map<int, dynamic>? ?? {};
@@ -313,16 +315,7 @@ class AppRouter {
             ),
             GoRoute(
               path: '/driver/qr',
-              builder: (context, state) {
-                final data = state.extra as Map<String, dynamic>?;
-                final ticketId = data != null ? data['ticketId']?.toString() : null;
-                final tripId = data != null && data['tripId'] != null ? int.tryParse(data['tripId'].toString()) : null;
-
-                return DriverQRScannerPage(
-                  ticketId: ticketId,
-                  tripId: tripId,
-                );
-              },
+              builder: (context, state) => const DriverQRScannerPage(),
             ),
           ],
       ),
