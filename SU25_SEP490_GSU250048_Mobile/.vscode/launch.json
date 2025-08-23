@@ -1,0 +1,150 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "gober_driver (dev - android)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "debug",
+        "args": [
+        //   "--flavor",
+        //   "dev",
+        //   "-t",
+          "lib/main.dart"
+        ],
+        // "deviceId": "emulator-5554"
+        "deviceId": "RFCR400YJPE"
+      },
+      {
+        "name": "gober_driver (staging - android)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "debug",
+        "args": [
+          "--flavor",
+          "staging",
+          "-t",
+          "lib/main_stg.dart"
+        ],
+        "deviceId": "android"
+      },
+      {
+        "name": "gober_driver (prod - android)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "debug",
+        "args": [
+          "--flavor",
+          "prod",
+          "-t",
+          "lib/main_prod.dart"
+        ],
+        // "deviceId": "SM G988B"
+        "deviceId": "RFCR400YJPE"
+      },
+      {
+        "name": "gober_driver (dev - ios)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "debug",
+        "args": [
+          "--flavor",
+          "dev",
+          "-t",
+          "lib/main_dev.dart"
+        ],
+        // "deviceId": "iPhoneSE"
+        // "deviceId": "iPhone 16 Pro"
+        "deviceId": "00008020-001E59C90178003A"
+      },
+      {
+        "name": "gober_driver (staging - ios)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "debug",
+        "args": [
+          "--flavor",
+          "staging",
+          "-t",
+          "lib/main_stg.dart"
+        ],
+        "deviceId": "ios"
+      },
+      {
+        "name": "gober_driver (prod - ios)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "release",
+        "args": [
+          "--flavor",
+          "prod",
+          "-t",
+          "lib/main_prod.dart"
+        ],
+        "deviceId": "ios"
+      },
+      {
+        "name": "gober_driver (release - android)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "release",
+        "args": [
+          "--flavor",
+          "dev",
+          "-t",
+          "lib/main_dev.dart"
+        ],
+        "deviceId": "android"
+      },
+      {
+        "name": "gober_driver (release - ios)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "release",
+        "args": [
+          "--flavor",
+          "dev",
+          "-t",
+          "lib/main_dev.dart"
+        ],
+        "deviceId": "ios"
+      },
+      {
+        "name": "Flutter (lib/presentation/features/profile/tabs/information/widgets/sections/profile_tpc_section.dart)",
+        "type": "dart",
+        "request": "launch",
+        "program": "lib/presentation/features/profile/tabs/information/widgets/sections/profile_tpc_section.dart"
+      },
+      {
+        "name": "gober_driver (dev - S24)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "debug",
+        "args": [
+          "--flavor",
+          "dev",
+          "-t",
+          "lib/main_dev.dart"
+        ],
+        //"deviceId": "SM S908E"
+        "deviceId": "R5CT63E6S8R"
+      },
+      {
+        "name": "gober_driver (dev - iPhone13)",
+        "request": "launch",
+        "type": "dart",
+        "flutterMode": "debug",
+        "args": [
+          "--flavor",
+          "dev",
+          "-t",
+          "lib/main_dev.dart"
+        ],
+        //"deviceId": "iPhone13Pro"
+        "deviceId": "00008110-000904300E45801E"
+      },
+    ]
+  }

@@ -1,17 +1,16 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mobile/services/author_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../../services/ticket_service.dart';
-
 class DriverQRScannerPage extends StatefulWidget {
   static final path = '/driver/qr';
-  final int? tripId;
-  final String? ticketId;
-
-  const DriverQRScannerPage({super.key, this.tripId, this.ticketId});
+  const DriverQRScannerPage({super.key});
 
   @override
   State<DriverQRScannerPage> createState() => _DriverQRScannerPageState();
@@ -33,37 +32,59 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
   }
 
   void _handleCode(String code) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Mã nhận được: $code')),
-    );
-
-    if (widget.tripId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(' Mã vé không hợp lệ')),
-      );
-      return;
-    }
-
+    // Expect code to be a JSON string like { "ticketId": "string", "tripId": 0 }
     try {
-      final ticket = await TicketService.checkInTicket(code, widget.tripId!);
+      final decoded = json.decode(code);
+      if (decoded is! Map) throw FormatException('Invalid payload');
 
-      if (!mounted) return;
+      final ticketId = decoded['ticketId']?.toString();
+      final tripId = decoded['tripId'];
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Check-in thành công: Vé #${ticket.id}')),
-      );
+      if (ticketId == null || ticketId.isEmpty || tripId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mã QR không hợp lệ')));
+        return;
+      }
+
+      final baseUrl = dotenv.env['API_URL']?.trim() ?? 'https://localhost:7197';
+      final uri = Uri.parse('$baseUrl/api/Ticket/check');
+
+      final token = await AuthService.getToken();
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      if (token != null && token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
+
+      final body = json.encode({'ticketId': ticketId, 'tripId': tripId});
+
+      final resp = await http.post(uri, headers: headers, body: body);
+      if (resp.statusCode >= 200 && resp.statusCode < 300) {
+        // try to parse response for message
+        String msg = 'Vé hợp lệ';
+        try {
+          final respJson = json.decode(resp.body);
+          if (respJson is Map && respJson['message'] != null) msg = respJson['message'].toString();
+        } catch (_) {}
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$msg')));
+      } else {
+        String err = 'Kiểm tra vé thất bại (code ${resp.statusCode})';
+        try {
+          final respJson = json.decode(resp.body);
+          if (respJson is Map && respJson['message'] != null) err = respJson['message'].toString();
+        } catch (_) {}
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+      }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(' Check-in thất bại: $e')),
-      );
+      debugPrint('Error handling code: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi khi xử lý mã: $e')));
     }
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -84,9 +105,7 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
             _handleCode(code);
           }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Không phát hiện được mã QR trong ảnh')),
-          );
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không phát hiện được mã QR trong ảnh')));
         }
       }
     } catch (e) {
@@ -97,20 +116,14 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quét mã QR'),
-        backgroundColor: Colors.orange,
-      ),
+      appBar: AppBar(title: const Text('Quét mã QR'), backgroundColor: Colors.orange),
       body: Column(
         children: [
           const SizedBox(height: 20),
-          const Text(
-            'Nhập mã QR in trên hóa đơn',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
+          const Text('Nhập mã QR in trên hóa đơn', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
           const SizedBox(height: 12),
 
-          // Ô nhập code
+          // Các ô nhập mã
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(codeLength, (index) {
@@ -124,10 +137,7 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    LengthLimitingTextInputFormatter(1),
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [LengthLimitingTextInputFormatter(1), FilteringTextInputFormatter.digitsOnly],
                   onChanged: (value) {
                     if (value.isNotEmpty && index < codeLength - 1) {
                       _focusNodes[index + 1].requestFocus();
@@ -143,7 +153,6 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
 
           const SizedBox(height: 20),
 
-          // Camera quét QR
           Expanded(
             child: Stack(
               alignment: Alignment.center,
@@ -170,10 +179,7 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
                 ),
                 const Positioned(
                   top: 40,
-                  child: Text(
-                    'Hướng camera vào mã QR',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  child: Text('Hướng camera vào mã QR', style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ],
             ),
@@ -181,14 +187,9 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
 
           const SizedBox(height: 12),
 
-          // Chọn ảnh từ thư viện
           Padding(
             padding: const EdgeInsets.all(12),
-            child: OutlinedButton.icon(
-              onPressed: _pickImageAndScan,
-              icon: const Icon(Icons.image),
-              label: const Text('Chọn ảnh mã QR từ thư viện'),
-            ),
+            child: OutlinedButton.icon(onPressed: _pickImageAndScan, icon: const Icon(Icons.image), label: const Text('Chọn ảnh mã QR từ thư viện')),
           ),
         ],
       ),

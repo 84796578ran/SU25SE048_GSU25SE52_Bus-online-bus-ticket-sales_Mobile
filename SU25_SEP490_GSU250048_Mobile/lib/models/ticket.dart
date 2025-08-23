@@ -1,6 +1,7 @@
 class Ticket {
   final int id;
   final String ticketId;
+  final String tripId;
   final int reservationId;
   final String customerName;
   final String seatId;
@@ -13,10 +14,11 @@ class Ticket {
   final String qrCodeUrl;
   final String companyName;
   final int status;
-  final int? tripId;
+
   Ticket({
     required this.id,
     required this.ticketId,
+    required this.tripId,
     required this.reservationId,
     required this.customerName,
     required this.seatId,
@@ -29,13 +31,13 @@ class Ticket {
     required this.qrCodeUrl,
     required this.companyName,
     required this.status,
-    required this.tripId,
   });
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
       id: json['id'] as int,
       ticketId: json['ticketId'] as String,
+      tripId: json['tripId'] as String,
       reservationId: json['reservationId'] as int,
       customerName: json['customerName'] as String,
       seatId: json['seatId'] as String,
@@ -48,7 +50,6 @@ class Ticket {
       qrCodeUrl: json['qrCodeUrl'] as String,
       companyName: json['companyName'] as String,
       status: json['status'] as int,
-      tripId: json['tripId'] as int?,
     );
   }
 
@@ -56,6 +57,7 @@ class Ticket {
     return {
       'id': id,
       'ticketId': ticketId,
+      'tripId': tripId,
       'reservationId': reservationId,
       'customerName': customerName,
       'seatId': seatId,
@@ -68,7 +70,6 @@ class Ticket {
       'qrCodeUrl': qrCodeUrl,
       'companyName': companyName,
       'status': status,
-      'tripId': tripId,
     };
   }
 }
