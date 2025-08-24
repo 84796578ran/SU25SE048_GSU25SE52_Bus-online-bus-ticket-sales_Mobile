@@ -26,6 +26,8 @@ class HistoryDetailScreen extends StatefulWidget {
 class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
   bool hasRated = false;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -69,16 +71,21 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
     );
   }
 
+
   String _statusToString(int? status) {
     switch (status) {
       case 0:
         return 'Đã thanh toán';
       case 1:
-        return 'Đã lên xe';
+        return 'Đang thực hiện chuyến đi';
       case 2:
-        return 'Đã hoàn thành';
-      case 3:
         return 'Đã hủy';
+      case 3:
+        return 'Đang chờ xử lý';
+      case 4:
+        return 'Chưa thanh toán';
+      case 5:
+        return 'Đã hoàn thành chuyến đi';
       default:
         return 'Không xác định';
     }
@@ -170,7 +177,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                 Center(
                   child: Column(
                     children: [
-                      const Text('Mã QR vé của bạn', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('Mã QR vé của bạn: ${widget.ticket.ticketId}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 5),
                       Image.network(
                         widget.ticket.qrCodeUrl,

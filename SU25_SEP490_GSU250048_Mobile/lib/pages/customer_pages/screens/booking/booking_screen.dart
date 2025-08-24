@@ -647,7 +647,7 @@ class _BookingScreenState extends State<BookingScreen> {
           children: [
             Text('$title: ${trip.fromLocation} -> ${trip.endLocation}', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text('Mã chuyến: ${trip.id}'),
+            Text('Mã chuyến: ${trip.tripId}'),
             Text('Ghế đã chọn: ${selectedSeats.isEmpty ? "N/A" : selectedSeats.map((s) => s.seatId).join(', ')}'),
             if (trip.fromStationId != null) Text('Trạm xuất phát: ${_getStationNameById(stations, trip.fromStationId)}'),
             if (trip.toStationId != null) Text('Trạm đến: ${_getStationNameById(stations, trip.toStationId)}'),
@@ -701,7 +701,7 @@ class _BookingScreenState extends State<BookingScreen> {
       children: [
         Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text('Mã chuyến: ${trip.id}'),
+        Text('Mã chuyến: ${trip.tripId}'),
         Text('Từ: ${trip.fromLocation} -> Đến: ${trip.endLocation}'),
 
         if (trip.fromStationId != null) Text('Trạm xuất phát: ${_getStationNameById(stations, trip.fromStationId)}'),

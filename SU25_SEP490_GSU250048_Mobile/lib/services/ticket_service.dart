@@ -18,7 +18,10 @@ class TicketService {
     final response = await http.get(url, headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'});
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      final List<Ticket> tickets = data.map((json) => Ticket.fromJson(json)).toList();
+      final List<Ticket> tickets = data
+          .map((json) => Ticket.fromJson(json))
+          .where((t) => [0, 1, 2, 5].contains(t.status))
+          .toList();
       tickets.sort((a, b) => b.createDate.compareTo(a.createDate));
       return tickets;
     } else {
