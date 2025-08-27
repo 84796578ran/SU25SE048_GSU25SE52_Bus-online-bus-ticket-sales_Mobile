@@ -17,6 +17,7 @@ import '../models/ticket.dart';
 import '../models/trip.dart';
 import '../models/TransferTrip.dart';
 import '../services/author_service.dart';
+import '../widget/SuccessDialog.dart';
 import '../widget/webview_widget.dart';
 import 'customer_pages/screens/booking/booking_screen.dart';
 import 'customer_pages/screens/history/history_detail_screen.dart';
@@ -275,8 +276,9 @@ class AppRouter {
                 onPaymentResult: (isSuccess, responseCode) {
                   if (isSuccess) {
                     print('Thanh toán VNPay thành công! Mã: $responseCode');
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thanh toán thành công!')));
-                    context.go('/customer/home');
+                    // ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thanh toán thành công!')));
+                    // context.go('/customer/home');
+                    SuccessDialog.show(context); // <-- dùng widget chung
                   } else {
                     print('Thanh toán VNPay thất bại. Mã: $responseCode');
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Thanh toán thất bại: $responseCode')));
