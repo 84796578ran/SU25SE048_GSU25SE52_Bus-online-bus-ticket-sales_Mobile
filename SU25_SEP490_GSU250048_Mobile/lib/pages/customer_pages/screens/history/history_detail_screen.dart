@@ -208,7 +208,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                 ),
               ),
               const SizedBox(height: 5),
-              if (!hasRated && DateTime.now().isBefore(widget.ticket.timeEnd))
+              if (!hasRated && DateTime.now().isAfter(widget.ticket.timeEnd) && widget.ticket.status == 5)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(

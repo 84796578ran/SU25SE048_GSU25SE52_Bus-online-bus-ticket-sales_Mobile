@@ -2,8 +2,8 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SystemUserService {
   static const _tokenKey = 'system_user_auth_token';
@@ -17,18 +17,29 @@ class SystemUserService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
     try {
-      Map<String, dynamic> payload = Jwt.parseJwt(token);
-      final idStr = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
-      if (idStr != null) {
-        final id = int.tryParse(idStr.toString());
-        if (id != null) {
-          await prefs.setInt(_systemUserIdKey, id);
-        }
+      final payload = Jwt.parseJwt(token);
+      final idStr = payload["nameid"]?.toString();
+      final id = idStr != null ? int.tryParse(idStr) : null;
+      if (id != null) {
+        await prefs.setInt(_systemUserIdKey, id);
+        print(" Lưu systemUserId thành công: $id");
+      } else {
+        print("Không tìm thấy systemUserId trong token");
+      }
+      final userName = payload["unique_name"]?.toString();
+      if (userName != null && userName.isNotEmpty) {
+        await prefs.setString(_userNameKey, userName);
+      }
+
+      final role = payload["role"]?.toString();
+      if (role != null && role.isNotEmpty) {
+        await prefs.setString(_roleKey, role);
       }
     } catch (e) {
-      print('Lỗi khi decode token: $e');
+      print(" Lỗi khi decode token: $e");
     }
   }
+
 
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();

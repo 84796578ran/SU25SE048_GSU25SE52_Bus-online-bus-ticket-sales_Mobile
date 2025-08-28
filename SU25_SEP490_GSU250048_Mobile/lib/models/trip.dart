@@ -14,9 +14,9 @@ class Trip {
   final String endLocation;
   final String? routeDescription;
   final int? routeId;
-  final bool? isDeleted;
-  final int? fromStationId; // THÊM TRƯỜNG NÀY
-  final int? toStationId;   // THÊM TRƯỜNG NÀY
+  final bool isDeleted;
+  final int? fromStationId;
+  final int? toStationId;
 
   Trip({
     required this.id,
@@ -31,9 +31,9 @@ class Trip {
     required this.endLocation,
     this.routeDescription,
     this.routeId,
-    this.isDeleted,
-    this.fromStationId, // THÊM VÀO CONSTRUCTOR
-    this.toStationId,   // THÊM VÀO CONSTRUCTOR
+    this.isDeleted = false,
+    this.fromStationId,
+    this.toStationId,
   });
 
   factory Trip.fromJson(Map<String, dynamic> json) {
@@ -42,8 +42,12 @@ class Trip {
       tripId: (json['tripId'] as String?) ?? 'N/A',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       status: TripStatus.fromInt((json['status'] as int?) ?? 0),
-      timeStart: DateTime.parse(json['timeStart'] as String),
-      timeEnd: DateTime.parse(json['timeEnd'] as String),
+      timeStart: json['timeStart'] != null
+          ? DateTime.tryParse(json['timeStart'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      timeEnd: json['timeEnd'] != null
+          ? DateTime.tryParse(json['timeEnd'].toString()) ?? DateTime.now()
+          : DateTime.now(),
       description: json['description'] as String?,
       busName: (json['busName'] as String?) ?? 'N/A',
       fromLocation: (json['fromLocation'] as String?) ?? 'N/A',
@@ -51,8 +55,8 @@ class Trip {
       routeDescription: json['routeDescription'] as String?,
       routeId: (json['routeId'] as int?),
       isDeleted: (json['isDeleted'] as bool?) ?? false,
-      fromStationId: (json['fromStationId'] as int?), // LẤY TỪ JSON
-      toStationId: (json['toStationId'] as int?),     // LẤY TỪ JSON
+      fromStationId: (json['fromStationId'] as int?),
+      toStationId: (json['toStationId'] as int?),
     );
   }
 
@@ -71,8 +75,8 @@ class Trip {
       'routeDescription': routeDescription,
       'routeId': routeId,
       'isDeleted': isDeleted,
-      'fromStationId': fromStationId, // BAO GỒM TRONG toJson
-      'toStationId': toStationId,     // BAO GỒM TRONG toJson
+      'fromStationId': fromStationId,
+      'toStationId': toStationId,
     };
   }
 }
