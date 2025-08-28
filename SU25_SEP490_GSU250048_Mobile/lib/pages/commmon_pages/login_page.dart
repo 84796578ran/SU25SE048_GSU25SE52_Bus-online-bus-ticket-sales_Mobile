@@ -46,10 +46,9 @@ class _LoginPage extends State<LoginPage> {
     if (token != null && mounted) {
       try {
         final payload = JwtDecoder.decode(token);
-        final actor = payload['actor'];
-        final role = payload['role'];
+        final role = payload['role']?.toString().toLowerCase();
 
-        if (actor == 'system' && role == 'driver') {
+        if ( role == 'driver') {
           context.go('/driver/home');
         } else {
           context.go('/customer/home');
@@ -95,11 +94,10 @@ class _LoginPage extends State<LoginPage> {
             throw Exception('Token không hợp lệ');
           }
           await SystemUserService.saveToken(token);
+          final systemUserId = await SystemUserService.getSystemUserId();
+          print(systemUserId); // phải là 13
           final systemUserProvider = Provider.of<SystemUserProvider>(context, listen: false);
-          await SystemUserService.saveUserName('system_user_name');
-          await SystemUserService.saveRole('system_user_role');
           await systemUserProvider.login(token);
-
           context.go('/driver/home');
         } else {
           // Thử đăng nhập bằng email của Customer nếu đăng nhập SystemUser thất bại

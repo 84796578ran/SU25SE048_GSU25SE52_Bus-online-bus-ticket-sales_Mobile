@@ -35,23 +35,24 @@ class Ticket {
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
-      id: json['id'] as int,
-      ticketId: json['ticketId'] as String,
-      tripId: json['tripId'] as String,
-      reservationId: json['reservationId'] as int,
-      customerName: json['customerName'] as String,
-      seatId: json['seatId'] as String,
-      price: (json['price'] as num).toDouble(),
-      createDate: DateTime.parse(json['createDate'] as String),
-      fromTripStation: json['fromTripStation'] as String,
-      toTripStation: json['toTripStation'] as String,
-      timeStart: DateTime.parse(json['timeStart'] as String),
-      timeEnd: DateTime.parse(json['timeEnd'] as String),
-      qrCodeUrl: json['qrCodeUrl'] as String,
-      companyName: json['companyName'] as String,
-      status: json['status'] as int,
+      id: json['id'] ?? 0,
+      ticketId: json['ticketId'] ?? '',
+      tripId: json['tripId']?.toString() ?? '',
+      reservationId: json['reservationId'] ?? 0,
+      customerName: json['customerName'] ?? '',
+      seatId: json['seatId'] ?? '',
+      price: (json['price'] ?? 0).toDouble(),
+      createDate: DateTime.tryParse(json['createDate'] ?? '') ?? DateTime.now(),
+      fromTripStation: json['fromTripStation'] ?? '',
+      toTripStation: json['toTripStation'] ?? '',
+      timeStart: DateTime.tryParse(json['timeStart'] ?? '') ?? DateTime.now(),
+      timeEnd: DateTime.tryParse(json['timeEnd'] ?? '') ?? DateTime.now(),
+      qrCodeUrl: json['qrCodeUrl'] ?? '',
+      companyName: json['companyName'] ?? '',
+      status: json['status'] ?? -1,
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {

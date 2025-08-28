@@ -1,0 +1,64 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+class SuccessDialog extends StatelessWidget {
+  final String title;
+  final String message;
+  final String redirectPath;
+  final Duration delay;
+
+  const SuccessDialog({
+    super.key,
+    this.title = 'Chúc mừng!',
+    this.message = 'Bạn đã đặt vé thành công!',
+    this.redirectPath = '/customer/home',
+    this.delay = const Duration(seconds: 3),
+  });
+
+  static void show(BuildContext context,
+      {String? title, String? message, String? redirectPath, Duration? delay}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return SuccessDialog(
+          title: title ?? 'Chúc mừng!',
+          message: message ?? 'Bạn đã đặt vé thành công!',
+          redirectPath: redirectPath ?? '/customer/home',
+          delay: delay ?? const Duration(seconds: 3),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Sau `delay` thì tự động đóng dialog và chuyển trang
+    Future.delayed(delay, () {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // đóng dialog
+        context.go(redirectPath); // điều hướng
+      }
+    });
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.check_circle, color: Colors.green, size: 80),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}

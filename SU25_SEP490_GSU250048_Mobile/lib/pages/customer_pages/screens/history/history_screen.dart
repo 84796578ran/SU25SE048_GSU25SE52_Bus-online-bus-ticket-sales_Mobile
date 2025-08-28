@@ -19,28 +19,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   late Future<List<Ticket>> _ticketHistoryFuture;
 
 
-  String _statusToString(int? status) {
-    switch (status) {
-      case 0:
-        return 'Đã thanh toán';
-      case 1:
-        return 'Đã sử dụng';
-      case 2:
-        return 'Đã hủy';
-      case 3:
-        return 'Đang chờ xử lý';
-      case 4:
-        return 'Chưa thanh toán';
-      case 5:
-        return 'Đã hoàn tiền';
-      default:
-        return 'Không xác định';
-    }
-  }
+
   @override
   void initState() {
     super.initState();
-    _ticketHistoryFuture = _fetchTickets();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _ticketHistoryFuture = _fetchTickets();
+      });
+    });
   }
 
   Future<List<Ticket>> _fetchTickets() async {
@@ -65,6 +52,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
+
+  String _statusToString(int? status) {
+    switch (status) {
+      case 0:
+        return 'Đã thanh toán';
+      case 1:
+        return 'Đang thực hiện chuyến đi';
+      case 2:
+        return 'Đã hủy';
+      case 3:
+        return 'Đang chờ xử lý';
+      case 4:
+        return 'Chưa thanh toán';
+      case 5:
+        return 'Đã hoàn thành chuyến đi';
+      default:
+        return 'Không xác định';
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
