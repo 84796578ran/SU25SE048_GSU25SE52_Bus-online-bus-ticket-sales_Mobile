@@ -54,8 +54,6 @@ class TicketService {
         if (tripList.isEmpty) {
           return null; // Trả về null nếu không có chuyến đi nào
         }
-
-        // Lấy chuyến đi đầu tiên trong danh sách (hoặc chuyến đi mong muốn)
         final tripData = tripList.first;
         return Trip.fromJson(tripData);
 
@@ -84,6 +82,38 @@ class TicketService {
       throw Exception('Failed to connect to the server: $e');
     }
   }
+
+  static Future<Map<String, dynamic>> checkTicket(String ticketId, int tripId) async {
+    final token = await SystemUserService.getToken();
+    if (token == null) {
+      throw Exception('Không tìm thấy token. Người dùng chưa đăng nhập?');
+    }
+
+    final uri = Uri.parse('$_baseUrl/Ticket/check');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+    final body = json.encode({
+      'ticketId': ticketId,
+      'tripId': tripId,
+    });
+
+    try {
+      final response = await http.post(uri, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        final errorBody = json.decode(response.body);
+        final errorMessage = errorBody['message'] ?? 'Lỗi không xác định.';
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi kết nối đến máy chủ: $e');
+    }
+  }
+
   static Future<void> completeTrip(int tripId) async {
     final token = await SystemUserService.getToken();
     if (token == null) {

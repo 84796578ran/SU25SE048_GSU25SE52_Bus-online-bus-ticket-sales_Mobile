@@ -110,7 +110,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             _showOpenSettingsDialog(context);
             return;
           }
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng cấp quyền truy cập ảnh để tải về.')));
+          //ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng cấp quyền truy cập ảnh để tải về.')));
           // return;
         }
       }
