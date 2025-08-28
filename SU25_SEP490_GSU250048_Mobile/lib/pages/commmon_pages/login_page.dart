@@ -32,7 +32,8 @@ class _LoginPage extends State<LoginPage> {
     if (kDebugMode) {
       _phoneController.text = '0938080462';
       _passwordController.text = '18012003';
-
+      // _phoneController.text = 'driver20@gmail.com';
+      //  _passwordController.text = '111111';
       // _phoneController.text = 'driver1@gmail.com';
       // _passwordController.text = '111111';
     }
@@ -242,12 +243,17 @@ class _LoginPage extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Chưa có tài khoản?', style: TextStyle(fontSize: 18)),
-                    SizedBox(width: 6),
-                    Text('Đăng ký ngay', style: TextStyle(fontSize: 18, color: Colors.blue)),
+                    const Text('Chưa có tài khoản?', style: TextStyle(fontSize: 18)),
+                    const SizedBox(width: 6),
+                    InkWell(
+                      onTap: () {
+                        context.push('/register');
+                      },
+                      child: const Text('Đăng ký ngay', style: TextStyle(fontSize: 18, color: Colors.blue)),
+                    ),
                   ],
                 ),
               ],

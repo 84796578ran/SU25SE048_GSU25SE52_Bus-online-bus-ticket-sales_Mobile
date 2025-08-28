@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/pages/commmon_pages/login_page.dart';
 import 'package:mobile/pages/commmon_pages/profile_page.dart';
+import 'package:mobile/pages/commmon_pages/register_page.dart';
 import 'package:mobile/pages/customer_pages/provider_page.dart';
 import 'package:mobile/pages/customer_pages/screens/history/history_screen.dart';
 import 'package:mobile/pages/customer_pages/screens/home/home_screen.dart';
@@ -40,12 +41,11 @@ class AppRouter {
           return const LoginPage();
         },
       ),
+      GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
       ShellRoute(
         builder: (context, state, child) => ProviderHomePage(child: child),
         routes: [
           GoRoute(path: '/customer/home', builder: (context, state) => const HomeScreen()),
-          GoRoute(path: '/register', builder: (context, state) => const HomeScreen()),
-
           GoRoute(path: '/customer/history', builder: (context, state) => const HistoryScreen()),
           GoRoute(
             path: '/customer/history/detail',

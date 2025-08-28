@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../../services/ticket_service.dart';
+
 class DriverQRScannerPage extends StatefulWidget {
   static final path = '/driver/qr';
   const DriverQRScannerPage({super.key});
@@ -44,31 +46,12 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mã QR không hợp lệ')));
         return;
       }
-
-      final baseUrl = dotenv.env['API_URL']?.trim() ?? 'https://localhost:7197';
-      final uri = Uri.parse('$baseUrl/api/Ticket/check');
-
-      final token = await AuthService.getToken();
-      final headers = <String, String>{'Content-Type': 'application/json'};
-      if (token != null && token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
-
-      final body = json.encode({'ticketId': ticketId, 'tripId': tripId});
-
-      final resp = await http.post(uri, headers: headers, body: body);
-      if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        // try to parse response for message
-        String msg = 'Vé hợp lệ';
-        try {
-          final respJson = json.decode(resp.body);
-          if (respJson is Map && respJson['message'] != null) msg = respJson['message'].toString();
-        } catch (_) {}
+      try {
+        final response = await TicketService.checkTicket(ticketId, tripId);
+        String msg = response['message'] ?? 'Vé hợp lệ';
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$msg')));
-      } else {
-        String err = 'Kiểm tra vé thất bại (code ${resp.statusCode})';
-        try {
-          final respJson = json.decode(resp.body);
-          if (respJson is Map && respJson['message'] != null) err = respJson['message'].toString();
-        } catch (_) {}
+      } catch (e) {
+        String err = 'Kiểm tra vé thất bại: ${e.toString()}';
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
       }
     } catch (e) {

@@ -31,8 +31,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       if (systemUserId == null) {
         throw Exception("Không tìm thấy SystemUserId");
       }
-
-      // lấy trip hiện tại
       final trip = await TicketService.fetchTripByDriver(systemUserId);
       if (trip == null) {
         print("Không có chuyến đi nào cho tài xế $systemUserId.");
