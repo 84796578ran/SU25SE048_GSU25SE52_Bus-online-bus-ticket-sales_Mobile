@@ -30,12 +30,12 @@ class _LoginPage extends State<LoginPage> {
   void initState() {
     super.initState();
     if (kDebugMode) {
-     _phoneController.text = '0898695587';
-      _passwordController.text = '123456';
+     // _phoneController.text = '0898695587';
+     //  _passwordController.text = '123456';
       // _phoneController.text = 'driver20@gmail.com';
       // _passwordController.text = '111111';
-      // _phoneController.text = 'driver1@gmail.com';
-      //  _passwordController.text = '111111';
+      _phoneController.text = 'driver1@gmail.com';
+       _passwordController.text = '111111';
     }
     _checkIfLoggedIn();
   }

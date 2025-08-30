@@ -63,7 +63,6 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
       }
       debugPrint('Đang gọi TicketService.checkTicket với ticketId=$ticketId, tripId=$tripId');
       final message = await TicketService.checkTicket(ticketId, tripId);
-
       if (context.mounted) {
         _audioPlayer.play(AssetSource('sounds/success.mp3'));
         SuccessDialog.show(
@@ -74,11 +73,11 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
           redirectPath: null,
         );
       }
-    } catch (e) {
+    }catch (e) {
       debugPrint('Lỗi khi xử lý QR: $e');
       if (context.mounted) {
         _audioPlayer.play(AssetSource('sounds/error.mp3'));
-        ErrorDialog.show(context, message: 'Mã QR code không hợp lệ!!!');
+        ErrorDialog.show(context, message: e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
