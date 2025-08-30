@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../models/customer.dart';
+import '../../../../models/enum/ticketStatus.dart';
 import '../../../../models/ticket.dart';
 import '../../../../services/ticket_service.dart';
 import '../../../../provider/author_provider.dart';
@@ -51,26 +52,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _ticketHistoryFuture = _fetchTickets();
     });
   }
-
-
-  String _statusToString(int? status) {
-    switch (status) {
-      case 0:
-        return 'Đã thanh toán';
-      case 1:
-        return 'Đang thực hiện chuyến đi';
-      case 2:
-        return 'Đã hủy';
-      case 3:
-        return 'Đang chờ xử lý';
-      case 4:
-        return 'Chưa thanh toán';
-      case 5:
-        return 'Đã hoàn thành chuyến đi';
-      default:
-        return 'Không xác định';
-    }
-  }
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -101,6 +82,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               itemCount: tickets.length,
               itemBuilder: (context, index) {
                 final ticket = tickets[index];
+                final ticketStatus = TicketStatus.fromInt(ticket.status);
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   child: InkWell(
@@ -131,7 +113,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           Text('Từ trạm: ${ticket.fromTripStation ?? '---'}'),
                           Text('Đến trạm: ${ticket.toTripStation ?? '---'}'),
                       Text(
-                        'Trạng thái: ${_statusToString(ticket.status)}',
+                        // Dùng thuộc tính name từ enum
+                        'Trạng thái: ${ticketStatus.name}',
                         style: const TextStyle(
                           color: Colors.red,
                           fontWeight: FontWeight.bold,

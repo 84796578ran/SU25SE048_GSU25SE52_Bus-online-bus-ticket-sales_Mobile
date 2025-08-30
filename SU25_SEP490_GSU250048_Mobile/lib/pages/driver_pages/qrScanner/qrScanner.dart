@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:mobile/services/author_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-
+import 'package:audioplayers/audioplayers.dart';
+import '../../../services/system_user_service.dart';
 import '../../../services/ticket_service.dart';
+import '../../../widget/ErrorDialog.dart';
+import '../../../widget/SuccessDialog.dart';
 
 class DriverQRScannerPage extends StatefulWidget {
   static final path = '/driver/qr';
@@ -23,7 +23,7 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
   final int codeLength = 6;
   final List<TextEditingController> _controllers = [];
   final List<FocusNode> _focusNodes = [];
-
+  final AudioPlayer _audioPlayer = AudioPlayer();
   @override
   void initState() {
     super.initState();
@@ -34,29 +34,52 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
   }
 
   void _handleCode(String code) async {
-    // Expect code to be a JSON string like { "ticketId": "string", "tripId": 0 }
     try {
-      final decoded = json.decode(code);
-      if (decoded is! Map) throw FormatException('Invalid payload');
-
-      final ticketId = decoded['ticketId']?.toString();
-      final tripId = decoded['tripId'];
-
-      if (ticketId == null || ticketId.isEmpty || tripId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mã QR không hợp lệ')));
+      debugPrint('Raw QR code: $code');
+      String? ticketId;
+      try {
+        final decodedJson = json.decode(code);
+        if (decodedJson is Map && decodedJson.containsKey('ticketId')) {
+          ticketId = decodedJson['ticketId']?.toString();
+        } else {
+          debugPrint('Mã QR không phải là JSON hợp lệ với ticketId, thử xử lý như chuỗi đơn giản.');
+        }
+      } catch (_) {
+        debugPrint('Lỗi khi decode JSON, tiếp tục xử lý như chuỗi đơn giản.');
+      }
+      if (ticketId == null || ticketId.isEmpty) {
+        ticketId = code;
+      }
+      if (ticketId == null || ticketId.isEmpty) {
+        ErrorDialog.show(context, message: 'Mã QR không hợp lệ: thiếu ticketId');
         return;
       }
-      try {
-        final response = await TicketService.checkTicket(ticketId, tripId);
-        String msg = response['message'] ?? 'Vé hợp lệ';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$msg')));
-      } catch (e) {
-        String err = 'Kiểm tra vé thất bại: ${e.toString()}';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+      final systemUserId = await SystemUserService.getSystemUserId();
+      final currentTrip = await TicketService.fetchTripByDriver(systemUserId!);
+      final tripId = currentTrip?.id;
+      if (tripId == null) {
+        ErrorDialog.show(context, message: 'Không tìm thấy chuyến đi hiện tại');
+        return;
+      }
+      debugPrint('Đang gọi TicketService.checkTicket với ticketId=$ticketId, tripId=$tripId');
+      final message = await TicketService.checkTicket(ticketId, tripId);
+
+      if (context.mounted) {
+        _audioPlayer.play(AssetSource('sounds/success.mp3'));
+        SuccessDialog.show(
+          context,
+          title: 'Thành công',
+          message: message,
+          delay: const Duration(seconds: 1),
+          redirectPath: null,
+        );
       }
     } catch (e) {
-      debugPrint('Error handling code: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi khi xử lý mã: $e')));
+      debugPrint('Lỗi khi xử lý QR: $e');
+      if (context.mounted) {
+        _audioPlayer.play(AssetSource('sounds/error.mp3'));
+        ErrorDialog.show(context, message: 'Mã QR code không hợp lệ!!!');
+      }
     }
   }
 
@@ -68,6 +91,7 @@ class _DriverQRScannerPageState extends State<DriverQRScannerPage> {
     for (final f in _focusNodes) {
       f.dispose();
     }
+    _audioPlayer.dispose(); // thêm dòng này
     super.dispose();
   }
 

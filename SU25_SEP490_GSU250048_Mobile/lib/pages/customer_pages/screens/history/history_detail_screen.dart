@@ -13,7 +13,7 @@ import '../../../../models/rating.dart';
 import '../../../../models/ticket.dart';
 import '../../../../provider/author_provider.dart';
 import '../../../../services/rating_service.dart';
-
+import '../../../../models/enum/ticketStatus.dart';
 class HistoryDetailScreen extends StatefulWidget {
   final Ticket ticket;
   final int customerId;
@@ -72,24 +72,24 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
   }
 
 
-  String _statusToString(int? status) {
-    switch (status) {
-      case 0:
-        return 'Đã thanh toán';
-      case 1:
-        return 'Đang thực hiện chuyến đi';
-      case 2:
-        return 'Đã hủy';
-      case 3:
-        return 'Đang chờ xử lý';
-      case 4:
-        return 'Chưa thanh toán';
-      case 5:
-        return 'Đã hoàn thành chuyến đi';
-      default:
-        return 'Không xác định';
-    }
-  }
+  // String _statusToString(int? status) {
+  //   switch (status) {
+  //     case 0:
+  //       return 'Đã thanh toán';
+  //     case 1:
+  //       return 'Đang thực hiện chuyến đi';
+  //     case 2:
+  //       return 'Đã hủy';
+  //     case 3:
+  //       return 'Đang chờ xử lý';
+  //     case 4:
+  //       return 'Chưa thanh toán';
+  //     case 5:
+  //       return 'Đã hoàn thành chuyến đi';
+  //     default:
+  //       return 'Không xác định';
+  //   }
+  // }
 
   Future<void> _downloadQrCode(BuildContext context) async {
     final qrCodeUrl = widget.ticket.qrCodeUrl;
@@ -141,6 +141,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final dataQR = {"ticketId": widget.ticket.ticketId, "tripId": widget.ticket.tripId};
+    final ticketStatus = TicketStatus.fromInt(widget.ticket.status);
     return Scaffold(
       appBar: AppBar(title: const Text('Chi tiết vé')),
       body: SingleChildScrollView(
@@ -170,8 +171,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
               const SizedBox(height: 15),
               Text('Ngày đặt: ${DateFormat('dd/MM/yyyy HH:mm').format(widget.ticket.createDate)}', style: const TextStyle(fontSize: 20)),
               const SizedBox(height: 15),
-              Text('Trạng thái: ${_statusToString(widget.ticket.status)}', style: const TextStyle(fontSize: 20)),
-
+              //Text('Trạng thái: ${_statusToString(widget.ticket.status)}', style: const TextStyle(fontSize: 20)),
+              Text('Trạng thái: ${ticketStatus.name}', style: const TextStyle(fontSize: 20, color: Colors.red)),
               const SizedBox(height: 5),
               if (widget.ticket.qrCodeUrl.isNotEmpty)
                 Center(

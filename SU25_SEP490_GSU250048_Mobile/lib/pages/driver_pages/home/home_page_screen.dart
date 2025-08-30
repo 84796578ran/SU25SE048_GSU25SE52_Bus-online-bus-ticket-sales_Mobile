@@ -36,6 +36,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         print("Không có chuyến đi nào cho tài xế $systemUserId.");
         return [];
       }
+      setState(() {
+        _hasActiveTrip = true;
+        _currentTrip = trip;
+      });
       // từ trip.id gọi tiếp station-passenger-count
       return await TicketService.fetchStationPassengerCount(trip.id);
     } catch (e) {

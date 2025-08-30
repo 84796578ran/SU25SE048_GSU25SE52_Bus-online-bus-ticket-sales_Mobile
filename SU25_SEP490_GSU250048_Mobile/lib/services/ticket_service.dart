@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile/services/system_user_service.dart';
@@ -20,6 +21,7 @@ class TicketService {
     final response = await http.get(url, headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'});
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
+ // final List<Ticket> tickets = data.map((json) => Ticket.fromJson(json)).toList();
       final List<Ticket> tickets = data
           .map((json) => Ticket.fromJson(json))
           .where((t) => [0, 1, 2, 5].contains(t.status))
@@ -46,7 +48,6 @@ class TicketService {
           'Content-Type': 'application/json',
         },
       );
-
       if (response.statusCode == 200) {
        final responseBody = json.decode(response.body);
         final tripList = responseBody['data'] as List<dynamic>;
@@ -55,7 +56,9 @@ class TicketService {
           return null; // Trả về null nếu không có chuyến đi nào
         }
         final tripData = tripList.first;
-        return Trip.fromJson(tripData);
+       final trip = Trip.fromJson(tripData);
+       print("fetchTripByDriver: TripId=${trip.id}");
+       return trip;
 
       } else if (response.statusCode == 404) {
         return null;
@@ -83,34 +86,26 @@ class TicketService {
     }
   }
 
-  static Future<Map<String, dynamic>> checkTicket(String ticketId, int tripId) async {
+  static Future<String> checkTicket(String ticketId, int tripId) async {
     final token = await SystemUserService.getToken();
     if (token == null) {
       throw Exception('Không tìm thấy token. Người dùng chưa đăng nhập?');
     }
 
     final uri = Uri.parse('$_baseUrl/Ticket/check');
-    final headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-    final body = json.encode({
-      'ticketId': ticketId,
-      'tripId': tripId,
-    });
+    final headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'};
+    final body = json.encode({'ticketId': ticketId, 'tripId': tripId});
 
     try {
       final response = await http.post(uri, headers: headers, body: body);
-
+      final responseText = utf8.decode(response.bodyBytes).trim();
+      print("checkTicket: response(${response.statusCode})=$responseText");
       if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        final errorBody = json.decode(response.body);
-        final errorMessage = errorBody['message'] ?? 'Lỗi không xác định.';
-        throw Exception(errorMessage);
+        return responseText.isEmpty ? 'Thành công' : responseText;
       }
+      return responseText;
     } catch (e) {
-      throw Exception('Lỗi khi kết nối đến máy chủ: $e');
+      throw Exception('$e');
     }
   }
 
