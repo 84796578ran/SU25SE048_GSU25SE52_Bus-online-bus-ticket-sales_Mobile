@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // Change the hardcoded URL if your local backend runs on a different port.
       // final baseUrl = 'https://382ec8df35d5.ngrok-free.app';
       final baseUrl = dotenv.env['API_URL'] ?? 'https://382ec8df35d5.ngrok-free.app';
-      final uri = Uri.parse('$baseUrl/api/Notifications/register-token');
+      final uri = Uri.parse('$baseUrl/Notifications/register-token');
 
       final body = json.encode({'phone': phoneNumber, 'token': token});
 

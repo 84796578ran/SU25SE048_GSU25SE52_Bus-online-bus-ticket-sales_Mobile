@@ -15,6 +15,7 @@ class Ticket {
   final String companyName;
   final int status;
 
+
   Ticket({
     required this.id,
     required this.ticketId,

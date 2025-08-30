@@ -30,12 +30,12 @@ class _LoginPage extends State<LoginPage> {
   void initState() {
     super.initState();
     if (kDebugMode) {
-      _phoneController.text = '0938080462';
-      _passwordController.text = '18012003';
+     // _phoneController.text = '0898695587';
+     //  _passwordController.text = '123456';
       // _phoneController.text = 'driver20@gmail.com';
-      //  _passwordController.text = '111111';
-      // _phoneController.text = 'driver1@gmail.com';
       // _passwordController.text = '111111';
+      _phoneController.text = 'driver1@gmail.com';
+       _passwordController.text = '111111';
     }
     _checkIfLoggedIn();
   }
@@ -49,7 +49,7 @@ class _LoginPage extends State<LoginPage> {
         final payload = JwtDecoder.decode(token);
         final role = payload['role']?.toString().toLowerCase();
 
-        if ( role == 'driver') {
+        if (role == 'driver') {
           context.go('/driver/home');
         } else {
           context.go('/customer/home');

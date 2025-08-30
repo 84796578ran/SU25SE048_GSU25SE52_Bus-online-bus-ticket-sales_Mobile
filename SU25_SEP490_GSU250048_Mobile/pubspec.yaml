@@ -40,6 +40,8 @@ dependencies:
   jwt_decode: ^0.3.1
   flutter_rating_bar: ^4.0.0
   signalr_netcore: ^1.4.3
+  # audio
+  audioplayers: ^6.0.0
   #save image
   path_provider: 2.1.5
   image_gallery_saver_plus: 4.0.1
@@ -88,6 +90,8 @@ flutter:
   assets:
     - assets/Logo.png
     - assets/buss.png
+    - assets/sounds/success.mp3
+    - assets/sounds/error.mp3
     - .env
     - .env.prod
   #   - images/a_dot_ham.jpeg
